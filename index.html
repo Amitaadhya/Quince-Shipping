@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quince Shipping Dashboard(End Radnik)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        :root {
+            --primary-blue: #1B2559;
+            --accent-teal: #14B8A6;
+            --noida-purple: #8B5CF6;
+            --gurugram-orange: #F59E0B;
+            --dark-bg: #111827;
+            --light-bg: #F3F4F6;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-primary: #1F2937;
+            --text-muted: #6B7280;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(180deg, var(--light-bg) 0%, #E5E7EB 100%);
+            color: var(--text-primary);
+            margin: 0;
+            padding-bottom: 80px; /* Footer height */
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #3B82F6 100%);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard-header h2 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .dashboard-header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: none;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-blue);
+        }
+
+        .unit-badge {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block; /* Ensure badge takes space */
+        }
+
+        .badge-noida {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--noida-purple);
+        }
+
+        .badge-gurugram {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--gurugram-orange);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 1rem; /* Add some space above table */
+        }
+
+        .data-table th {
+            background: var(--primary-blue);
+            color: white;
+            padding: 12px 15px; /* Adjust padding */
+            position: sticky;
+            top: 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+            text-align: left; /* Align headers left */
+            z-index: 10; /* Ensure header stays above scrolling content */
+        }
+
+        .data-table td {
+            padding: 12px 15px; /* Adjust padding */
+            font-size: 0.9rem;
+            border-bottom: 1px solid #E5E7EB;
+            vertical-align: middle;
+            text-align: left; /* Align cell data left */
+        }
+
+        .data-table tr:nth-child(even) {
+            background: rgba(243, 244, 246, 0.5);
+        }
+
+        .data-table tr:hover {
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+         /* Align action buttons */
+        .data-table td:last-child {
+            text-align: center;
+            white-space: nowrap; /* Prevent buttons from wrapping */
+        }
+
+        .form-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            background: #E5E7EB;
+            border: none;
+            padding: 8px 16px;
+            margin-right: 8px;
+            margin-bottom: 5px; /* Spacing for wrapped buttons */
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--accent-teal);
+            color: white;
+        }
+
+        .tab-btn:hover {
+            background: #D1D5DB;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: var(--primary-blue);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background: #1D4ED8;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-primary {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+            border-radius: 8px;
+        }
+
+        .btn-outline-primary:hover {
+            background: rgba(29, 78, 216, 0.1);
+        }
+
+         .btn-outline-danger {
+            border-radius: 8px;
+        }
+         .btn-outline-secondary {
+            border-radius: 8px;
+         }
+         .btn-sm {
+             padding: 0.25rem 0.5rem;
+             font-size: 0.8rem; /* Smaller font for small buttons */
+         }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--dark-bg);
+            color: #D1D5DB;
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 0.9rem;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1000; /* Ensure footer is above content */
+        }
+
+        .summary-card h5 {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase; /* Make titles uppercase */
+            letter-spacing: 0.5px; /* Add spacing */
+        }
+
+        .summary-card h3 {
+            font-weight: 700;
+            font-size: 1.6rem; /* Slightly larger font */
+            color: var(--primary-blue);
+        }
+
+        /* Add icons to summary cards */
+        .summary-icon {
+            font-size: 2rem;
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .data-table th, .data-table td {
+                font-size: 0.8rem;
+                padding: 8px 10px; /* Adjust padding for mobile */
+            }
+             .data-table th {
+                 font-size: 0.75rem; /* Smaller header font on mobile */
+             }
+
+            .dashboard-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                margin-bottom: 1rem;
+            }
+             .summary-card h3 {
+                font-size: 1.4rem;
+            }
+             .btn-group .btn { /* Ensure unit buttons wrap nicely */
+                 margin-bottom: 5px;
+             }
+             .input-group { /* Ensure search bar fits */
+                 width: 100% !important;
+                 margin-top: 10px;
+             }
+        }
+         /* Ensure table responsiveness */
+        .table-responsive {
+             overflow-x: auto;
+             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        /* Style for error messages */
+        .error-message {
+            color: red;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8 col-sm-7">
+                    <h2><i class="fas fa-chart-line me-2"></i> Quince Shipping Dashboard</h2>
+                    <p class="mb-0">Monthly shipping quantity & value tracking</p>
+                </div>
+                <div class="col-md-4 col-sm-5 text-end">
+                    <button class="btn btn-outline-light btn-sm me-2" id="toggleHelp" title="Help">
+                        <i class="fas fa-question-circle"></i> <span class="d-none d-md-inline">Help</span>
+                    </button>
+                    <button class="btn btn-success btn-sm" id="exportExcel" title="Export to Excel">
+                        <i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Export</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-4">
+        <!-- Unit Selector -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
+                        <div class="mb-2 mb-md-0">
+                            <h5 class="d-inline-block mb-0 me-3 align-middle">Select Unit</h5>
+                            <div class="btn-group align-middle" role="group">
+                                <button type="button" class="btn btn-outline-primary unit-btn active" data-unit="all">All Units</button>
+                                <button type="button" class="btn btn-outline-primary unit-btn" data-unit="noida"><i class="fas fa-building me-1"></i> Noida</button>
+                                <button type="button" class="btn btn-outline-primary unit-btn" data-unit="gurugram"><i class="fas fa-building me-1"></i> Gurugram</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary ms-md-3 mt-2 mt-md-0" id="addNewBtn"><i class="fas fa-plus me-1"></i> Add Monthly Entry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Entry Form (Simplified) -->
+        <div class="row mb-4" id="dataForm" style="display: none;">
+            <div class="col-12">
+                <div class="form-container">
+                    <h4 class="mb-4"><i class="fas fa-edit me-2"></i> Monthly Shipping Entry</h4>
+                    <form id="shippingForm">
+                        <input type="hidden" id="editIndex"> <!-- Stores array index for editing -->
+                        <div class="row g-3">
+                            <div class="col-md-3 col-sm-6">
+                                <label class="form-label" for="unit">Unit</label>
+                                <select class="form-select" id="unit" required>
+                                    <option value="" disabled selected>Select Unit</option>
+                                    <option value="noida">Noida</option>
+                                    <option value="gurugram">Gurugram</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label class="form-label" for="month">Month</label>
+                                <select class="form-select" id="month" required>
+                                    <option value="" disabled selected>Select Month</option>
+                                    <option value="January">January</option>
+                                    <option value="February">February</option>
+                                    <option value="March">March</option>
+                                    <option value="April">April</option>
+                                    <option value="May">May</option>
+                                    <option value="June">June</option>
+                                    <option value="July">July</option>
+                                    <option value="August">August</option>
+                                    <option value="September">September</option>
+                                    <option value="October">October</option>
+                                    <option value="November">November</option>
+                                    <option value="December">December</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label class="form-label" for="qty">Shipped Quantity</label>
+                                <input type="number" class="form-control" id="qty" required min="0" placeholder="e.g., 1500">
+                            </div>
+                            <div class="col-md-3 col-sm-6">
+                                <label class="form-label" for="value">Shipped Value ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="value" required min="0" placeholder="e.g., 25000.50">
+                            </div>
+                        </div>
+                        <div id="formErrorMessage" class="error-message mt-3"></div> <!-- For form errors -->
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="button" class="btn btn-outline-secondary me-2" id="cancelForm">Cancel</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Entry</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards (Simplified) -->
+        <div class="row mb-4">
+            <div class="col-md-4 col-sm-6">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Total Entries</h5>
+                                <h3 class="mb-0" id="totalEntries">0</h3>
+                            </div>
+                            <i class="fas fa-clipboard-list summary-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card summary-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                           <div>
+                                <h5 class="card-title">Total Quantity</h5>
+                                <h3 class="mb-0" id="totalQuantity">0</h3>
+                            </div>
+                             <i class="fas fa-boxes summary-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-12"> <!-- Takes full width on small screens -->
+                <div class="card summary-card">
+                     <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">Total Value</h5>
+                                <h3 class="mb-0" id="totalValue">$0.00</h3>
+                            </div>
+                            <i class="fas fa-dollar-sign summary-icon"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                        <h5 class="mb-2 mb-md-0 me-3">Monthly Shipping Analytics</h5>
+                        <div class="btn-group flex-wrap" role="group"> <!-- Allow wrapping -->
+                            <button class="tab-btn active" data-tab="combined">Combined</button>
+                            <button class="tab-btn" data-tab="quantity">Quantity</button>
+                            <button class="tab-btn" data-tab="value">Value</button>
+                            <button class="tab-btn" data-tab="noida">Noida</button>
+                            <button class="tab-btn" data-tab="gurugram">Gurugram</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="mainChart" height="150"></canvas> <!-- Increased default height -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table (Simplified) -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+                        <h5 class="mb-2 mb-md-0 me-3">Monthly Shipping Data</h5>
+                        <div class="input-group" style="width: 250px;">
+                            <input type="text" class="form-control form-control-sm" placeholder="Search Month, Qty, Value..." id="searchInput">
+                            <button class="btn btn-outline-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%;">Unit</th>
+                                        <th style="width: 25%;">Month</th>
+                                        <th style="width: 20%;">Shipped Qty</th>
+                                        <th style="width: 25%;">Value ($)</th>
+                                        <th style="width: 15%;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="shipmentData"></tbody>
+                            </table>
+                        </div>
+                         <p id="noDataMessage" class="text-center text-muted mt-3" style="display: none;">No data available for the selected unit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content" style="background: var(--card-bg); backdrop-filter: blur(10px);">
+                <div class="modal-header">
+                    <h5 class="modal-title">Dashboard Guide</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>How to use:</h6>
+                    <ul>
+                        <li><strong>Add Entry</strong>: Click "Add Monthly Entry" to input new data (Unit, Month, Quantity, Value). Multiple entries for the same month/unit are allowed.</li>
+                        <li><strong>Filter Units</strong>: Use the "All Units", "Noida", "Gurugram" buttons to filter data.</li>
+                        <li><strong>View Analytics</strong>: Use the tabs above the chart (Combined, Quantity, etc.) to change the graph view.</li>
+                        <li><strong>Search</strong>: Type in the search box above the table to find specific entries by month, quantity, or value.</li>
+                        <li><strong>Edit/Delete</strong>: Use the <i class="fas fa-edit"></i> and <i class="fas fa-trash"></i> icons in the table to modify or remove entries.</li>
+                        <li><strong>Export</strong>: Click "Export" to download the currently displayed data as an Excel file.</li>
+                    </ul>
+                    <h6>Features:</h6>
+                    <ul>
+                        <li>Track monthly shipped quantity and value.</li>
+                        <li>Filter data by Noida or Gurugram units.</li>
+                        <li>Visualize trends with interactive charts.</li>
+                        <li>Easy data management (Add, Edit, Delete).</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p class="mb-0">© 2025 Quince Shipping Dashboard | Crafted by Amit Chaudhary</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Keep Font Awesome JS if you need dynamic icons, otherwise CSS is sufficient -->
+    <!-- <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> -->
+    <script>
+        // Simplified data structure
+        let shipmentData = JSON.parse(localStorage.getItem('shipmentData')) || [
+            // Sample Data (can be empty initially)
+            // { unit: 'noida', month: 'January', qty: 5917, value: 96521.75, id: 1678886400000 + Math.random() },
+            // { unit: 'gurugram', month: 'January', qty: 500, value: 11750.00, id: 1678886400001 + Math.random() },
+            // { unit: 'noida', month: 'February', qty: 4500, value: 85000.00, id: 1678886400002 + Math.random() },
+            // { unit: 'gurugram', month: 'February', qty: 650, value: 15000.50, id: 1678886400003 + Math.random() }
+        ];
+
+        let currentUnit = 'all';
+        let mainChart;
+        const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // --- Utility Functions ---
+        function formatCurrency(amount) {
+            // Handle potential non-numeric input gracefully
+             if (typeof amount !== 'number' || isNaN(amount)) {
+                 amount = 0;
+             }
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatNumber(num) {
+            // Handle potential non-numeric input gracefully
+             if (typeof num !== 'number' || isNaN(num)) {
+                 num = 0;
+             }
+            return num.toLocaleString('en-IN'); // Use Indian numbering format if preferred
+        }
+
+        function saveToLocalStorage() {
+            try {
+                 localStorage.setItem('shipmentData', JSON.stringify(shipmentData));
+             } catch (e) {
+                 console.error("Error saving to localStorage:", e);
+                 alert("Could not save data. Local storage might be full or disabled.");
+             }
+        }
+
+        // Helper to get month index for sorting
+        function getMonthIndex(monthName) {
+            return monthOrder.indexOf(monthName);
+        }
+
+        // Sort data by month, then unit
+        function sortData() {
+             shipmentData.sort((a, b) => {
+                const monthIndexA = getMonthIndex(a.month);
+                const monthIndexB = getMonthIndex(b.month);
+                if (monthIndexA !== monthIndexB) {
+                    return monthIndexA - monthIndexB;
+                }
+                 // If months are the same, sort by unit (optional, alphabetical)
+                 // return a.unit.localeCompare(b.unit);
+                 // Or sort by ID (entry order for same month/unit)
+                 return a.id - b.id;
+            });
+        }
+
+        // --- Core Dashboard Logic ---
+
+        function calculateTotals() {
+            const filteredData = filterDataByUnit();
+            const totalEntries = filteredData.length;
+            // Use || 0 to handle potential null/undefined values if data structure is inconsistent
+            const totalQuantity = filteredData.reduce((sum, item) => sum + (item.qty || 0), 0);
+            const totalValue = filteredData.reduce((sum, item) => sum + (item.value || 0), 0);
+
+            document.getElementById('totalEntries').textContent = formatNumber(totalEntries);
+            document.getElementById('totalQuantity').textContent = formatNumber(totalQuantity);
+            document.getElementById('totalValue').textContent = formatCurrency(totalValue);
+        }
+
+        function filterDataByUnit() {
+            if (currentUnit === 'all') return shipmentData;
+            return shipmentData.filter(item => item.unit === currentUnit);
+        }
+
+        function renderTable() {
+            const tableBody = document.getElementById('shipmentData');
+            const noDataMsg = document.getElementById('noDataMessage');
+            tableBody.innerHTML = ''; // Clear previous data
+
+            const filteredData = filterDataByUnit();
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter based on search term *within* the unit-filtered data
+            const displayData = filteredData.filter(item => {
+                 if (!searchTerm) return true; // Show all if search is empty
+                 return (
+                     item.month.toLowerCase().includes(searchTerm) ||
+                     String(item.qty).includes(searchTerm) ||
+                     String(item.value).includes(searchTerm) ||
+                     item.unit.toLowerCase().includes(searchTerm) // Also allow searching unit name
+                 );
+             });
+
+
+             if (displayData.length === 0) {
+                 noDataMsg.style.display = 'block';
+                 tableBody.style.display = 'none';
+                 if (filteredData.length > 0 && searchTerm) {
+                     noDataMsg.textContent = "No entries match your search.";
+                 } else {
+                     noDataMsg.textContent = "No data available for the selected unit.";
+                 }
+             } else {
+                 noDataMsg.style.display = 'none';
+                 tableBody.style.display = ''; // Show table body
+
+                displayData.forEach((item) => {
+                    if (!item || typeof item.id === 'undefined') {
+                        console.warn("Skipping rendering invalid item:", item);
+                        return; // Skip rendering if item or id is invalid/missing
+                    }
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-id', item.id); // Use unique ID
+                    row.innerHTML = `
+                        <td><span class="unit-badge badge-${item.unit}">${item.unit === 'noida' ? 'Noida' : 'Gurugram'}</span></td>
+                        <td>${item.month}</td>
+                        <td>${formatNumber(item.qty)}</td>
+                        <td>${formatCurrency(item.value)}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1 edit-btn" title="Edit" data-id="${item.id}"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            // Re-attach event listeners after rendering - Crucial step
+            attachTableActionListeners();
+        }
+
+        function attachTableActionListeners() {
+             // Target specific buttons within the table body
+             const tableBody = document.getElementById('shipmentData');
+
+             tableBody.querySelectorAll('.edit-btn').forEach(btn => {
+                 // Clear existing listener before adding
+                 const newBtn = btn.cloneNode(true);
+                 btn.parentNode.replaceChild(newBtn, btn);
+                 newBtn.addEventListener('click', handleEditClick);
+            });
+
+             tableBody.querySelectorAll('.delete-btn').forEach(btn => {
+                 // Clear existing listener before adding
+                 const newBtn = btn.cloneNode(true);
+                 btn.parentNode.replaceChild(newBtn, btn);
+                 newBtn.addEventListener('click', handleDeleteClick);
+            });
+        }
+
+        function handleEditClick(event) {
+            const dataId = event.currentTarget.getAttribute('data-id');
+             if (dataId) {
+                 editData(dataId);
+             } else {
+                 console.error("Edit button clicked but no data-id found.");
+             }
+         }
+
+         function handleDeleteClick(event) {
+             const dataId = event.currentTarget.getAttribute('data-id');
+             if (dataId) {
+                 deleteData(dataId);
+             } else {
+                 console.error("Delete button clicked but no data-id found.");
+             }
+         }
+
+        // Aggregate data by month for charts
+        function aggregateDataByMonth(data) {
+            const aggregated = {};
+            monthOrder.forEach(month => { // Ensure all months are present in order
+                aggregated[month] = { qty: 0, value: 0, count: 0 };
+            });
+
+            data.forEach(item => {
+                // Ensure item and month exist before trying to aggregate
+                 if (item && item.month && aggregated[item.month]) {
+                    aggregated[item.month].qty += (item.qty || 0);
+                    aggregated[item.month].value += (item.value || 0);
+                    aggregated[item.month].count++;
+                }
+            });
+            return aggregated;
+        }
+        // Aggregate data by month and unit
+         function aggregateDataByMonthUnit(data) {
+             const aggregated = {};
+             monthOrder.forEach(month => {
+                 aggregated[month] = {
+                     noida: { qty: 0, value: 0 },
+                     gurugram: { qty: 0, value: 0 }
+                 };
+             });
+
+             data.forEach(item => {
+                 // Ensure item, month, and unit exist
+                 if (item && item.month && item.unit && aggregated[item.month] && aggregated[item.month][item.unit]) {
+                     aggregated[item.month][item.unit].qty += (item.qty || 0);
+                     aggregated[item.month][item.unit].value += (item.value || 0);
+                 }
+             });
+             return aggregated;
+         }
+
+
+        function initMainChart(type = 'combined') {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const unitFilteredData = filterDataByUnit(); // Data filtered by selected unit button
+
+            if (mainChart) {
+                 try {
+                     mainChart.destroy();
+                 } catch(e) { console.error("Error destroying chart:", e); }
+             }
+
+            let config = {};
+            let labels = monthOrder; // Use all months for consistent x-axis
+
+            // Define chart data based on type
+             try { // Wrap chart logic in try/catch
+                if (type === 'combined') {
+                     const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data for combined view by unit
+
+                     config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Noida Value ($)',
+                                    data: labels.map(month => aggregated[month]?.noida?.value || 0),
+                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
+                                    yAxisID: 'yValue',
+                                    order: 1 // Ensure value bars are behind qty bars if overlapping
+                                },
+                                {
+                                    label: 'Gurugram Value ($)',
+                                    data: labels.map(month => aggregated[month]?.gurugram?.value || 0),
+                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
+                                    yAxisID: 'yValue',
+                                    order: 1
+                                },
+                                {
+                                    label: 'Noida Quantity',
+                                    data: labels.map(month => aggregated[month]?.noida?.qty || 0),
+                                    borderColor: 'rgba(139, 92, 246, 1)',
+                                    yAxisID: 'yQuantity',
+                                    type: 'line', // Show quantity as line overlay
+                                    tension: 0.3,
+                                    order: 0, // Render line on top
+                                    borderWidth: 2,
+                                    pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                                    pointRadius: 3
+                                },
+                                {
+                                    label: 'Gurugram Quantity',
+                                    data: labels.map(month => aggregated[month]?.gurugram?.qty || 0),
+                                    borderColor: 'rgba(245, 158, 11, 1)',
+                                    yAxisID: 'yQuantity',
+                                    type: 'line', // Show quantity as line overlay
+                                    tension: 0.3,
+                                    order: 0,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
+                                    pointRadius: 3
+                                }
+                            ]
+                        },
+                        options: {
+                            scales: {
+                                x: { title: { display: true, text: 'Month'}},
+                                yValue: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Value ($)'}, ticks: { callback: value => formatCurrency(value) } },
+                                yQuantity: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: 'Quantity'}, grid: { drawOnChartArea: false }, ticks: { callback: value => formatNumber(value) } }
+                            }
+                        }
+                    };
+                } else if (type === 'quantity') {
+                     const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data
+                     config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Noida Quantity',
+                                    data: labels.map(month => aggregated[month]?.noida?.qty || 0),
+                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
+                                },
+                                {
+                                    label: 'Gurugram Quantity',
+                                    data: labels.map(month => aggregated[month]?.gurugram?.qty || 0),
+                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
+                                }
+                            ]
+                        },
+                         options: {
+                             plugins: { title: { display: true, text: 'Monthly Quantity by Unit' } },
+                             scales: { y: { beginAtZero: true, stacked: true, title: { display: true, text: 'Total Quantity'} } , x: { stacked: true, title: { display: true, text: 'Month'} } }, // Stack bars
+                             interaction: { mode: 'index', intersect: false } // Better tooltips for stacked bars
+                         }
+                    };
+                } else if (type === 'value') {
+                    const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data
+                     config = {
+                        type: 'bar', // Use bar chart for value too for consistency or line
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Noida Value ($)',
+                                    data: labels.map(month => aggregated[month]?.noida?.value || 0),
+                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
+                                },
+                                {
+                                    label: 'Gurugram Value ($)',
+                                    data: labels.map(month => aggregated[month]?.gurugram?.value || 0),
+                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
+                                }
+                            ]
+                        },
+                         options: {
+                             plugins: { title: { display: true, text: 'Monthly Value ($) by Unit' } },
+                             scales: { y: { beginAtZero: true, stacked: true, title: { display: true, text: 'Total Value ($)'}, ticks: { callback: value => formatCurrency(value) } }, x: { stacked: true, title: { display: true, text: 'Month'} } },
+                             interaction: { mode: 'index', intersect: false }
+                         }
+                    };
+                } else if (type === 'noida' || type === 'gurugram') {
+                    const unitData = shipmentData.filter(item => item.unit === type);
+                    const aggregated = aggregateDataByMonth(unitData);
+                    const color = type === 'noida' ? 'rgba(139, 92, 246, 0.7)' : 'rgba(245, 158, 11, 0.7)';
+                    const lineColor = type === 'noida' ? 'rgba(139, 92, 246, 1)' : 'rgba(245, 158, 11, 1)';
+
+                    config = {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Value ($)',
+                                    data: labels.map(month => aggregated[month]?.value || 0),
+                                    backgroundColor: color,
+                                    yAxisID: 'yValue',
+                                    order: 1
+                                },
+                                {
+                                    label: 'Quantity',
+                                    data: labels.map(month => aggregated[month]?.qty || 0),
+                                    borderColor: lineColor,
+                                    yAxisID: 'yQuantity',
+                                    type: 'line', // Show quantity as line
+                                    tension: 0.3,
+                                    order: 0,
+                                    borderWidth: 2,
+                                    pointBackgroundColor: lineColor,
+                                    pointRadius: 3
+                                }
+                            ]
+                        },
+                        options: {
+                             plugins: { title: { display: true, text: `Monthly Data for ${type.charAt(0).toUpperCase() + type.slice(1)}` } },
+                             scales: {
+                                 x: { title: { display: true, text: 'Month'}},
+                                 yValue: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Value ($)'}, ticks: { callback: value => formatCurrency(value) } },
+                                 yQuantity: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: 'Quantity'}, grid: { drawOnChartArea: false }, ticks: { callback: value => formatNumber(value) } }
+                            }
+                        }
+                    };
+                }
+
+                // --- Create Chart Instance ---
+                 mainChart = new Chart(ctx, {
+                    ...config,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, // Allow chart height control
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 12, family: 'Poppins' } } },
+                            tooltip: {
+                                backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                                titleFont: { family: 'Poppins', weight: 'bold'},
+                                bodyFont: { family: 'Poppins' },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        let value = context.raw;
+                                        // Check if value is valid number before formatting
+                                        if (typeof value === 'number' && !isNaN(value)) {
+                                             label += context.dataset.label.includes('$') ? formatCurrency(value) : formatNumber(value);
+                                         } else {
+                                             label += 'N/A'; // Or some placeholder
+                                         }
+                                        return label;
+                                    }
+                                }
+                            },
+                            ...(config.options?.plugins || {}) // Merge specific chart type plugins
+                        },
+                        scales: config.options?.scales || {}, // Merge specific scales
+                        animation: { duration: 800, easing: 'easeOutQuart' } // Changed easing
+                    }
+                });
+
+            } catch (error) {
+                 console.error("Error initializing chart:", error);
+                 // Optionally display an error message to the user on the page
+                 ctx.font = "16px Poppins";
+                 ctx.fillStyle = "red";
+                 ctx.textAlign = "center";
+                 ctx.fillText("Error loading chart.", ctx.canvas.width / 2, ctx.canvas.height / 2);
+             }
+        }
+
+        function exportToExcel() {
+            // Get data currently displayed in the table (respects unit filter AND search filter)
+            const tableBody = document.getElementById('shipmentData');
+            const rows = tableBody.querySelectorAll('tr');
+            let exportData = [];
+
+             if(rows.length === 0){
+                 alert("No data to export based on current filters.");
+                 return;
+             }
+
+            rows.forEach(row => {
+                 const cells = row.querySelectorAll('td');
+                 if(cells.length >= 4){ // Check for expected number of cells
+                     exportData.push({
+                         Unit: cells[0].textContent.trim(),
+                         Month: cells[1].textContent.trim(),
+                         'Shipped Qty': cells[2].textContent.trim().replace(/,/g, ''), // Remove commas for Excel
+                         'Value ($)': cells[3].textContent.trim().replace(/[$,]/g, '') // Remove $ and commas
+                     });
+                 }
+             });
+
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+
+            // --- Optional: Formatting ---
+             // Set column widths (example)
+             ws['!cols'] = [
+                 { wch: 15 }, // Unit
+                 { wch: 15 }, // Month
+                 { wch: 15 }, // Shipped Qty
+                 { wch: 20 }  // Value ($)
+             ];
+             // --- End Optional Formatting ---
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Shipping Data");
+            // Dynamically name the file based on the selected unit
+            const unitName = currentUnit === 'all' ? 'All_Units' : (currentUnit === 'noida' ? 'Noida' : 'Gurugram');
+            XLSX.writeFile(wb, `Quince_Monthly_Shipping_${unitName}.xlsx`);
+        }
+
+        // --- Form Handling ---
+
+        function addNewData() {
+             console.log("addNewData called"); // Debug log
+            document.getElementById('shippingForm').reset();
+            document.getElementById('editIndex').value = ''; // Clear edit index
+             document.getElementById('formErrorMessage').textContent = ''; // Clear any previous error
+             // Ensure default "Select" options are shown
+             document.getElementById('unit').selectedIndex = 0;
+             document.getElementById('month').selectedIndex = 0;
+            document.getElementById('dataForm').style.display = 'block';
+            // Scroll form into view if needed
+            document.getElementById('dataForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Edit function uses the unique ID now
+         function editData(id) {
+             // Find the item in the main data array using its ID
+             // Convert id from attribute (string) to number if necessary for comparison, although === might handle it
+             const itemIndex = shipmentData.findIndex(item => String(item.id) === String(id));
+             console.log(`Editing item with ID: ${id}, Found at index: ${itemIndex}`); // Debug log
+
+             if (itemIndex === -1) {
+                 console.error("Item to edit not found with ID:", id);
+                 alert("Error: Could not find the item to edit.");
+                 return; // Item not found
+             }
+
+             const item = shipmentData[itemIndex];
+             if (!item) {
+                 console.error("Invalid item found at index:", itemIndex);
+                 alert("Error: Invalid data for the item to edit.");
+                 return;
+             }
+
+            document.getElementById('unit').value = item.unit;
+            document.getElementById('month').value = item.month;
+            document.getElementById('qty').value = item.qty;
+            document.getElementById('value').value = item.value;
+            document.getElementById('editIndex').value = itemIndex; // Store the array index for saving
+             document.getElementById('formErrorMessage').textContent = ''; // Clear any previous error
+            document.getElementById('dataForm').style.display = 'block';
+             document.getElementById('dataForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Delete function uses the unique ID
+         function deleteData(id) {
+             // Find the index using the ID
+             const itemIndex = shipmentData.findIndex(item => String(item.id) === String(id));
+             console.log(`Deleting item with ID: ${id}, Found at index: ${itemIndex}`); // Debug log
+
+             if (itemIndex === -1) {
+                  console.error("Item to delete not found with ID:", id);
+                 alert("Error: Could not find the item to delete.");
+                 return; // Item not found
+             }
+
+             // Get details before deleting for confirmation message
+             const itemToDelete = shipmentData[itemIndex];
+             const confirmMessage = `Are you sure you want to delete the entry for ${itemToDelete.month} (${itemToDelete.unit}: Qty ${formatNumber(itemToDelete.qty)}, Val ${formatCurrency(itemToDelete.value)})?`;
+
+            if (confirm(confirmMessage)) {
+                shipmentData.splice(itemIndex, 1); // Remove item from array
+                saveToLocalStorage();
+                refreshDashboard(); // Update UI
+            }
+        }
+
+        function saveFormData(e) {
+            e.preventDefault(); // Prevent default form submission
+            console.log("saveFormData called"); // Debug log
+
+            const formErrorMsg = document.getElementById('formErrorMessage');
+            formErrorMsg.textContent = ''; // Clear previous errors
+
+            // --- Basic Validation ---
+             const unit = document.getElementById('unit').value;
+             const month = document.getElementById('month').value;
+             const qtyInput = document.getElementById('qty');
+             const valueInput = document.getElementById('value');
+
+             if (!unit) {
+                 formErrorMsg.textContent = "Please select a Unit.";
+                 return;
+             }
+             if (!month) {
+                 formErrorMsg.textContent = "Please select a Month.";
+                 return;
+             }
+             if (qtyInput.value === '' || isNaN(parseInt(qtyInput.value)) || parseInt(qtyInput.value) < 0) {
+                 formErrorMsg.textContent = "Please enter a valid non-negative Quantity.";
+                 return;
+             }
+              if (valueInput.value === '' || isNaN(parseFloat(valueInput.value)) || parseFloat(valueInput.value) < 0) {
+                 formErrorMsg.textContent = "Please enter a valid non-negative Value.";
+                 return;
+             }
+             // --- End Validation ---
+
+            const formData = {
+                unit: unit,
+                month: month,
+                qty: parseInt(qtyInput.value),
+                value: parseFloat(valueInput.value),
+                id: null // Will be set below
+            };
+
+            const editIndexStr = document.getElementById('editIndex').value;
+
+            // REMOVED: Duplicate check is removed as requested
+            /*
+            const isDuplicate = shipmentData.some((item, index) =>
+                item.unit === formData.unit &&
+                item.month === formData.month &&
+                (editIndexStr === '' || index !== parseInt(editIndexStr)) // Allow saving same month/unit if editing that specific item
+            );
+
+            if (isDuplicate) {
+                 alert(`An entry for ${formData.month} in ${formData.unit === 'noida' ? 'Noida' : 'Gurugram'} already exists. You can edit the existing entry if needed.`);
+                 return; // Stop saving
+            }
+            */
+
+            if (editIndexStr !== '') {
+                 const editIndex = parseInt(editIndexStr);
+                 // Editing: Update existing item, keep its original ID
+                 if (editIndex >= 0 && editIndex < shipmentData.length) {
+                     formData.id = shipmentData[editIndex].id; // Keep original ID
+                     shipmentData[editIndex] = formData;
+                      console.log("Data updated at index:", editIndex);
+                 } else {
+                     console.error("Invalid editIndex:", editIndexStr);
+                     alert("Error saving edited data. Please try again.");
+                     return;
+                 }
+
+            } else {
+                // Adding: Assign a new unique ID (simple timestamp + random)
+                 formData.id = Date.now() + Math.random();
+                shipmentData.push(formData);
+                 console.log("New data added with ID:", formData.id);
+            }
+
+            sortData(); // Sort after adding/editing
+            saveToLocalStorage();
+            refreshDashboard();
+            document.getElementById('dataForm').style.display = 'none'; // Hide form
+            document.getElementById('shippingForm').reset(); // Reset form fields
+        }
+
+        function refreshDashboard() {
+            console.log("Refreshing dashboard. Current unit:", currentUnit); // Debug log
+            calculateTotals();
+            renderTable(); // Renders table based on currentUnit AND search term
+            initMainChart(document.querySelector('.tab-btn.active').dataset.tab); // Redraw chart based on active tab
+        }
+
+        // --- Initialization ---
+        function initDashboard() {
+             console.log("Initializing dashboard..."); // Debug log
+            sortData(); // Initial sort of any loaded data
+            refreshDashboard(); // Initial load of UI elements
+
+            // --- Event Listeners ---
+
+            // Unit filter buttons
+            document.querySelectorAll('.unit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.classList.contains('active')) return; // Do nothing if already active
+                    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentUnit = this.dataset.unit;
+                    // When unit changes, clear search and refresh
+                    document.getElementById('searchInput').value = '';
+                    refreshDashboard();
+                });
+            });
+
+            // Chart type tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                     if (this.classList.contains('active')) return; // Do nothing if already active
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    // Only redraw chart, don't filter data again here
+                    initMainChart(this.dataset.tab);
+                });
+            });
+
+            // Add/Cancel/Save form buttons
+             const addNewButton = document.getElementById('addNewBtn');
+             if(addNewButton) {
+                 addNewButton.addEventListener('click', addNewData);
+             } else {
+                 console.error("Add New Button not found!");
+             }
+
+            const cancelFormButton = document.getElementById('cancelForm');
+             if (cancelFormButton) {
+                 cancelFormButton.addEventListener('click', () => {
+                    document.getElementById('dataForm').style.display = 'none';
+                    document.getElementById('shippingForm').reset();
+                    document.getElementById('formErrorMessage').textContent = ''; // Clear errors on cancel
+                });
+             } else {
+                 console.error("Cancel Form Button not found!");
+             }
+
+             const shippingForm = document.getElementById('shippingForm');
+             if (shippingForm) {
+                 shippingForm.addEventListener('submit', saveFormData);
+             } else {
+                 console.error("Shipping Form not found!");
+             }
+
+
+            // Export button
+            const exportButton = document.getElementById('exportExcel');
+             if (exportButton) {
+                exportButton.addEventListener('click', exportToExcel);
+             } else {
+                 console.error("Export Button not found!");
+             }
+
+            // Search input - Trigger refresh on input change
+             const searchInput = document.getElementById('searchInput');
+             if (searchInput) {
+                 searchInput.addEventListener('input', function() {
+                    // We don't need to call the full refreshDashboard, just re-render the table
+                    renderTable();
+                    // Optionally, you could update totals/chart based on search, but usually not desired.
+                });
+             } else {
+                 console.error("Search Input not found!");
+             }
+
+
+            // Help Modal
+            const helpModalElement = document.getElementById('helpModal');
+            const toggleHelpButton = document.getElementById('toggleHelp');
+             if (helpModalElement && toggleHelpButton) {
+                 const helpModal = new bootstrap.Modal(helpModalElement);
+                 toggleHelpButton.addEventListener('click', () => helpModal.show());
+             } else {
+                 console.error("Help Modal elements not found!");
+             }
+
+             // Add listener for table actions (delegated listener is generally better but this works too)
+             // attachTableActionListeners(); // Initial attachment (will be re-attached in renderTable)
+             console.log("Dashboard Initialized.");
+        }
+
+        // --- Start the application ---
+        document.addEventListener('DOMContentLoaded', initDashboard);
+
+    </script>
+</body>
+</html>
