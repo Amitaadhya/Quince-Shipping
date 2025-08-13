@@ -3,1224 +3,2161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quince Shipping Dashboard(End Radnik)</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <title>Logistics Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include these CDN links for Import functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+
     <style>
+        /* --- Base Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
         :root {
-            --primary-blue: #1B2559;
-            --accent-teal: #14B8A6;
-            --noida-purple: #8B5CF6;
-            --gurugram-orange: #F59E0B;
-            --dark-bg: #111827;
-            --light-bg: #F3F4F6;
-            --card-bg: rgba(255, 255, 255, 0.95);
-            --text-primary: #1F2937;
-            --text-muted: #6B7280;
+            --primary: #2563eb; /* Blue */
+            --secondary: #1d4ed8; /* Darker Blue */
+            --accent: #f59e0b; /* Amber */
+            --dark: #1e293b; /* Dark Gray */
+            --light: #f8fafc; /* Very Light Gray */
+            --success: #10b981; /* Green */
+            --danger: #ef4444; /* Red */
+            --warning: #f59e0b; /* Amber */
+            --gray: #64748b; /* Medium Gray */
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(180deg, var(--light-bg) 0%, #E5E7EB 100%);
-            color: var(--text-primary);
-            margin: 0;
-            padding-bottom: 80px; /* Footer height */
+            background-color: #f1f5f9; /* Light background */
+            color: var(--dark);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
-        .dashboard-header {
-            background: linear-gradient(135deg, var(--primary-blue) 0%, #3B82F6 100%);
+        /* --- Sidebar Styles --- */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
             color: white;
-            padding: 1.5rem 0;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .dashboard-header h2 {
-            font-weight: 700;
-            font-size: 2rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .dashboard-header p {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            margin-bottom: 1.5rem;
-        }
-
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-        }
-
-        .card-header {
-            background: transparent;
-            border-bottom: none;
-            padding: 1rem 1.5rem;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--primary-blue);
-        }
-
-        .unit-badge {
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            display: inline-block; /* Ensure badge takes space */
-        }
-
-        .badge-noida {
-            background: rgba(139, 92, 246, 0.15);
-            color: var(--noida-purple);
-        }
-
-        .badge-gurugram {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--gurugram-orange);
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 1rem; /* Add some space above table */
-        }
-
-        .data-table th {
-            background: var(--primary-blue);
-            color: white;
-            padding: 12px 15px; /* Adjust padding */
-            position: sticky;
-            top: 0;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            white-space: nowrap;
-            text-align: left; /* Align headers left */
-            z-index: 10; /* Ensure header stays above scrolling content */
-        }
-
-        .data-table td {
-            padding: 12px 15px; /* Adjust padding */
-            font-size: 0.9rem;
-            border-bottom: 1px solid #E5E7EB;
-            vertical-align: middle;
-            text-align: left; /* Align cell data left */
-        }
-
-        .data-table tr:nth-child(even) {
-            background: rgba(243, 244, 246, 0.5);
-        }
-
-        .data-table tr:hover {
-            background: rgba(20, 184, 166, 0.1);
-        }
-
-         /* Align action buttons */
-        .data-table td:last-child {
-            text-align: center;
-            white-space: nowrap; /* Prevent buttons from wrapping */
-        }
-
-        .form-container {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        }
-
-        .tab-btn {
-            background: #E5E7EB;
-            border: none;
-            padding: 8px 16px;
-            margin-right: 8px;
-            margin-bottom: 5px; /* Spacing for wrapped buttons */
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--text-muted);
+            padding: 20px 0;
+            height: 100vh;
+            position: fixed;
             transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            overflow-y: auto; /* Enable scrolling for sidebar content */
         }
 
-        .tab-btn.active {
-            background: var(--accent-teal);
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center; /* Center the logo content */
+            padding: 15px 0; /* Adjusted padding for image logo */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 10px; /* Reduced margin */
+        }
+
+        /* --- New CSS for Image Logo --- */
+        .logo-image {
+            height: 40px; /* Adjust this value to fit your logo's height */
+            width: auto; /* Maintain aspect ratio */
+            display: block; /* Ensures proper spacing */
+            margin: 0 auto; /* Centers the image if the logo div has a fixed width */
+        }
+
+        .logo-icon-text { /* Style for when sidebar collapses */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .logo-icon-text i {
+            font-size: 32px; /* Larger icon when text is hidden */
+            color: white;
+        }
+        .logo-icon-text h1 {
+             font-size: 22px;
+             font-weight: 600;
+             color: white;
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid var(--accent);
             color: white;
         }
 
-        .tab-btn:hover {
-            background: #D1D5DB;
-            transform: translateY(-2px);
+        .nav-item i {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 24px; /* Fixed width for alignment */
+            text-align: center;
+        }
+
+        .nav-item span {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* --- Main Content Styles --- */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            transition: all 0.3s ease;
+            padding: 20px;
+            background-color: #f1f5f9;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px; /* Adjusted padding */
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 15px; /* Space between items */
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--dark);
+        }
+
+        .user-role {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        /* --- Stats Cards --- */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 24px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+
+        .bg-primary { background: rgba(37, 99, 235, 0.1); color: var(--primary); }
+        .bg-success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .bg-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .bg-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--dark);
+        }
+
+        .stat-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* --- Content Section Styles --- */
+        .content-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            gap: 15px; /* Space between items */
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .search-filter-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap; /* Allow wrapping */
+        }
+
+        .search-input {
+            padding: 8px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .filter-dropdown {
+            padding: 8px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .filter-dropdown:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
         }
 
         .btn-primary {
-            background: var(--primary-blue);
-            border: none;
-            border-radius: 8px;
-            padding: 0.75rem 1.5rem;
-            font-weight: 500;
-            transition: background 0.3s ease, transform 0.3s ease;
+            background: var(--primary);
+            color: white;
         }
 
         .btn-primary:hover {
-            background: #1D4ED8;
-            transform: translateY(-2px);
+            background: var(--secondary);
         }
 
-        .btn-outline-primary {
-            border-color: var(--primary-blue);
-            color: var(--primary-blue);
-            border-radius: 8px;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--gray);
+            color: var(--dark);
         }
 
-        .btn-outline-primary:hover {
-            background: rgba(29, 78, 216, 0.1);
+        .btn-outline:hover {
+            background: var(--light);
+            border-color: var(--gray);
         }
 
-         .btn-outline-danger {
-            border-radius: 8px;
+        .btn-danger {
+            background: var(--danger);
+            color: white;
         }
-         .btn-outline-secondary {
-            border-radius: 8px;
-         }
-         .btn-sm {
-             padding: 0.25rem 0.5rem;
-             font-size: 0.8rem; /* Smaller font for small buttons */
-         }
 
-        footer {
-            position: fixed;
-            bottom: 0;
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #d97706;
+        }
+
+        .btn-icon {
+            padding: 8px 12px; /* Smaller padding for icon buttons */
+        }
+
+        /* --- Table Styles --- */
+        .table-container {
+            overflow-x: auto; /* For responsiveness on small screens */
+        }
+
+        table {
             width: 100%;
-            background: var(--dark-bg);
-            color: #D1D5DB;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: var(--light); /* Lighter header */
+            text-align: left;
+            padding: 16px 12px;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid #e2e8f0;
+            white-space: nowrap; /* Prevent breaking words */
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: var(--dark);
+            font-size: 14px;
+            white-space: nowrap; /* Prevent breaking words */
+        }
+
+        tr:hover td {
+            background-color: var(--light); /* Highlight row on hover */
+        }
+
+        .status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
             text-align: center;
-            padding: 1rem 0;
-            font-size: 0.9rem;
-            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.2);
-            z-index: 1000; /* Ensure footer is above content */
         }
 
-        .summary-card h5 {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase; /* Make titles uppercase */
-            letter-spacing: 0.5px; /* Add spacing */
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-shipped { background: rgba(37, 99, 235, 0.1); color: var(--primary); } /* Shipment In Transit */
+        .status-delivered { background: rgba(16, 185, 129, 0.1); color: var(--success); } /* Shipment Delivered */
+        .status-delayed { background: rgba(239, 68, 68, 0.1); color: var(--danger); } /* Shipment Delayed */
+        .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); } /* User Active */
+        .status-inactive { background: rgba(245, 158, 11, 0.1); color: var(--warning); } /* User Inactive */
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: var(--success); } /* Order Completed */
+        .status-in-production { background: rgba(37, 99, 235, 0.1); color: var(--primary); } /* Order In Production */
+        .status-processing { background: rgba(37, 99, 235, 0.1); color: var(--primary); } /* Order Processing */
+        .status-shipped-order { background: rgba(37, 99, 235, 0.1); color: var(--primary); } /* Order Shipped */
+        .status-delivered-order { background: rgba(16, 185, 129, 0.1); color: var(--success); } /* Order Delivered */
+
+
+        /* Actions Icons */
+        .actions-icons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
         }
 
-        .summary-card h3 {
-            font-weight: 700;
-            font-size: 1.6rem; /* Slightly larger font */
-            color: var(--primary-blue);
+        .actions-icons i {
+            cursor: pointer;
+            font-size: 16px;
+            transition: color 0.2s ease;
         }
 
-        /* Add icons to summary cards */
-        .summary-icon {
-            font-size: 2rem;
-            color: var(--text-muted);
-            opacity: 0.6;
+        .actions-icons .fa-edit:hover { color: var(--warning); }
+        .actions-icons .fa-trash:hover { color: var(--danger); }
+        .actions-icons .fa-eye:hover { color: var(--primary); }
+
+        /* --- Charts Section --- */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            padding: 25px;
+            display: flex;
+            flex-direction: column; /* Stack header and canvas */
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 10px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-wrapper {
+            flex-grow: 1; /* Allow canvas to take available space */
+            position: relative;
+            min-height: 300px; /* Ensure a minimum height */
+        }
+
+        /* --- Modals for Add/Edit Shipment --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 101; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 500px; /* Max width for the modal */
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(-20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .close-button {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--gray);
+            cursor: pointer;
+            background: none;
+            border: none;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: var(--danger);
+        }
+
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+
+        .modal-body label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .modal-body input[type="text"],
+        .modal-body input[type="number"],
+        .modal-body select,
+        .modal-body input[type="date"],
+        .modal-body input[type="email"] { /* Added email for user mgmt */
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .modal-body input:focus,
+        .modal-body select:focus {
+            border-color: var(--primary);
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        /* --- Footer Styles --- */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 14px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 1200px) { /* Adjusted breakpoint */
+            .charts-container {
+                grid-template-columns: 1fr; /* Stack charts */
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+                overflow-x: hidden; /* Hide content that overflows */
+            }
+            .sidebar:hover { /* Show on hover */
+                width: 260px;
+                overflow-x: visible;
+            }
+            .logo-image, .nav-item span { /* Hide image logo and text span */
+                display: none;
+            }
+            .logo { /* Show icon and text when sidebar hovers */
+                justify-content: center;
+                padding: 20px 0;
+            }
+            .logo .logo-icon-text {
+                display: flex;
+                gap: 12px;
+            }
+            .logo-icon-text i {
+                font-size: 32px; /* Larger icon when text is hidden */
+            }
+            .nav-item {
+                justify-content: center;
+                padding: 20px 0;
+            }
+            .nav-item i {
+                margin-right: 0;
+            }
+            .main-content {
+                margin-left: 80px;
+            }
+            .sidebar:hover ~ .main-content { /* Adjust margin when sidebar expands */
+                margin-left: 260px;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .search-filter-container {
+                width: 100%; /* Make search/filter take full width */
+                justify-content: space-between;
+            }
+            .search-input, .filter-dropdown {
+                flex: 1; /* Distribute space */
+            }
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            .user-profile {
+                align-self: flex-end;
+            }
         }
 
         @media (max-width: 768px) {
-            .data-table th, .data-table td {
-                font-size: 0.8rem;
-                padding: 8px 10px; /* Adjust padding for mobile */
+            .stats-container {
+                grid-template-columns: 1fr; /* Stack stats cards */
             }
-             .data-table th {
-                 font-size: 0.75rem; /* Smaller header font on mobile */
-             }
-
-            .dashboard-header h2 {
-                font-size: 1.5rem;
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
             }
-
-            .card {
-                margin-bottom: 1rem;
+            .user-profile {
+                align-self: flex-end; /* Push profile to the right */
             }
-             .summary-card h3 {
-                font-size: 1.4rem;
+            .search-filter-container {
+                flex-direction: column;
+                align-items: stretch; /* Stretch inputs */
             }
-             .btn-group .btn { /* Ensure unit buttons wrap nicely */
-                 margin-bottom: 5px;
-             }
-             .input-group { /* Ensure search bar fits */
-                 width: 100% !important;
-                 margin-top: 10px;
-             }
+            .search-input, .filter-dropdown {
+                width: 100%; /* Ensure full width */
+            }
         }
-         /* Ensure table responsiveness */
-        .table-responsive {
-             overflow-x: auto;
-             -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+
+        /* --- Hidden content for modules --- */
+        .module-content {
+            display: none;
         }
-        /* Style for error messages */
-        .error-message {
-            color: red;
-            font-size: 0.85rem;
-            margin-top: 5px;
+
+        .module-content.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-header">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8 col-sm-7">
-                    <h2><i class="fas fa-chart-line me-2"></i> Quince Shipping Dashboard</h2>
-                    <p class="mb-0">Monthly shipping quantity & value tracking</p>
-                </div>
-                <div class="col-md-4 col-sm-5 text-end">
-                    <button class="btn btn-outline-light btn-sm me-2" id="toggleHelp" title="Help">
-                        <i class="fas fa-question-circle"></i> <span class="d-none d-md-inline">Help</span>
-                    </button>
-                    <button class="btn btn-success btn-sm" id="exportExcel" title="Export to Excel">
-                        <i class="fas fa-file-excel"></i> <span class="d-none d-md-inline">Export</span>
-                    </button>
-                </div>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon-text">
+                <i class="fas fa-truck-fast"></i>
+                <h1>LogisticsPro</h1>
+            </div>
+        </div>
+        <div class="nav-links">
+            <!-- Navigation Order Changed -->
+            <div class="nav-item active" data-target="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard & Analytics</span>
+            </div>
+            <div class="nav-item" data-target="shipments-module">
+                <i class="fas fa-box-open"></i>
+                <span>Shipments</span>
+            </div>
+            <div class="nav-item" data-target="order-management">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Order Management</span>
+            </div>
+            <div class="nav-item" data-target="user-management">
+                <i class="fas fa-users"></i>
+                <span>User Management</span>
+            </div>
+            <div class="nav-item" data-target="settings-module">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+            <!-- Logout modified -->
+            <div class="nav-item logout-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
             </div>
         </div>
     </div>
 
-    <div class="container my-4">
-        <!-- Unit Selector -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body d-flex flex-wrap justify-content-between align-items-center">
-                        <div class="mb-2 mb-md-0">
-                            <h5 class="d-inline-block mb-0 me-3 align-middle">Select Unit</h5>
-                            <div class="btn-group align-middle" role="group">
-                                <button type="button" class="btn btn-outline-primary unit-btn active" data-unit="all">All Units</button>
-                                <button type="button" class="btn btn-outline-primary unit-btn" data-unit="noida"><i class="fas fa-building me-1"></i> Noida</button>
-                                <button type="button" class="btn btn-outline-primary unit-btn" data-unit="gurugram"><i class="fas fa-building me-1"></i> Gurugram</button>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary ms-md-3 mt-2 mt-md-0" id="addNewBtn"><i class="fas fa-plus me-1"></i> Add Monthly Entry</button>
-                    </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <!-- Page title will be updated by JavaScript -->
+            <div class="page-title">Dashboard & Analytics</div>
+            <div class="user-profile">
+                <div class="user-info">
+                    <!-- User name changed to Amit Chaudhary -->
+                    <div class="user-name">Amit Chaudhary</div>
+                    <div class="user-role">Admin</div>
+                </div>
+                <div class="avatar">AKS</div> <!-- Avatar initials -->
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>142</h3>
+                    <p>Total Shipments</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>118</h3>
+                    <p>Delivered</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>17</h3>
+                    <p>In Transit</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon bg-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>7</h3>
+                    <p>Delayed</p>
                 </div>
             </div>
         </div>
 
-        <!-- Data Entry Form (Simplified) -->
-        <div class="row mb-4" id="dataForm" style="display: none;">
-            <div class="col-12">
-                <div class="form-container">
-                    <h4 class="mb-4"><i class="fas fa-edit me-2"></i> Monthly Shipping Entry</h4>
-                    <form id="shippingForm">
-                        <input type="hidden" id="editIndex"> <!-- Stores array index for editing -->
-                        <div class="row g-3">
-                            <div class="col-md-3 col-sm-6">
-                                <label class="form-label" for="unit">Unit</label>
-                                <select class="form-select" id="unit" required>
-                                    <option value="" disabled selected>Select Unit</option>
-                                    <option value="noida">Noida</option>
-                                    <option value="gurugram">Gurugram</option>
+        <!-- Dashboard & Analytics Module (Active by default due to order change) -->
+        <div id="dashboard" class="module-content active">
+            <div class="content-section">
+                <div class="section-header">
+                    <div class="section-title">Performance Overview</div>
+                    <div>
+                        <button class="btn btn-outline">
+                            <i class="fas fa-download"></i> Export Report
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">Shipment Volume Trend (Weekly)</div>
+                            <div class="chart-actions">
+                                <select class="btn btn-outline">
+                                    <option>Last 7 Days</option>
+                                    <option>Last 30 Days</option>
+                                    <option>Last Quarter</option>
                                 </select>
                             </div>
-                            <div class="col-md-3 col-sm-6">
-                                <label class="form-label" for="month">Month</label>
-                                <select class="form-select" id="month" required>
-                                    <option value="" disabled selected>Select Month</option>
-                                    <option value="January">January</option>
-                                    <option value="February">February</option>
-                                    <option value="March">March</option>
-                                    <option value="April">April</option>
-                                    <option value="May">May</option>
-                                    <option value="June">June</option>
-                                    <option value="July">July</option>
-                                    <option value="August">August</option>
-                                    <option value="September">September</option>
-                                    <option value="October">October</option>
-                                    <option value="November">November</option>
-                                    <option value="December">December</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <label class="form-label" for="qty">Shipped Quantity</label>
-                                <input type="number" class="form-control" id="qty" required min="0" placeholder="e.g., 1500">
-                            </div>
-                            <div class="col-md-3 col-sm-6">
-                                <label class="form-label" for="value">Shipped Value ($)</label>
-                                <input type="number" step="0.01" class="form-control" id="value" required min="0" placeholder="e.g., 25000.50">
-                            </div>
                         </div>
-                        <div id="formErrorMessage" class="error-message mt-3"></div> <!-- For form errors -->
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="button" class="btn btn-outline-secondary me-2" id="cancelForm">Cancel</button>
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Entry</button>
+                        <div class="chart-wrapper">
+                            <canvas id="shipmentChart"></canvas>
                         </div>
-                    </form>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">Delivery Status Distribution</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">Location Performance</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="locationChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-title">On-Time Delivery Rate</div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="deliveryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Summary Cards (Simplified) -->
-        <div class="row mb-4">
-            <div class="col-md-4 col-sm-6">
-                <div class="card summary-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">Total Entries</h5>
-                                <h3 class="mb-0" id="totalEntries">0</h3>
-                            </div>
-                            <i class="fas fa-clipboard-list summary-icon"></i>
+                <!-- NEW: Monthly Shipping Analytics -->
+                <div class="content-section" style="margin-top: 30px;">
+                    <div class="section-header">
+                        <div class="section-title">Monthly Shipping Analytics</div>
+                        <div class="chart-actions">
+                            <select class="btn btn-outline">
+                                <option>2023</option>
+                                <option>2022</option>
+                                <option>2021</option>
+                            </select>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-6">
-                <div class="card summary-card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                           <div>
-                                <h5 class="card-title">Total Quantity</h5>
-                                <h3 class="mb-0" id="totalQuantity">0</h3>
-                            </div>
-                             <i class="fas fa-boxes summary-icon"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4 col-sm-12"> <!-- Takes full width on small screens -->
-                <div class="card summary-card">
-                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title">Total Value</h5>
-                                <h3 class="mb-0" id="totalValue">$0.00</h3>
-                            </div>
-                            <i class="fas fa-dollar-sign summary-icon"></i>
-                        </div>
+                    <div class="chart-wrapper">
+                        <canvas id="monthlyShipmentChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Analytics Section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
-                        <h5 class="mb-2 mb-md-0 me-3">Monthly Shipping Analytics</h5>
-                        <div class="btn-group flex-wrap" role="group"> <!-- Allow wrapping -->
-                            <button class="tab-btn active" data-tab="combined">Combined</button>
-                            <button class="tab-btn" data-tab="quantity">Quantity</button>
-                            <button class="tab-btn" data-tab="value">Value</button>
-                            <button class="tab-btn" data-tab="noida">Noida</button>
-                            <button class="tab-btn" data-tab="gurugram">Gurugram</button>
+        <!-- Shipments Module -->
+        <div id="shipments-module" class="module-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <div class="section-title">Shipment Details</div>
+                    <div class="search-filter-container">
+                        <input type="text" id="shipmentSearch" class="search-input" placeholder="Search shipments...">
+                        <select id="statusFilter" class="filter-dropdown">
+                            <option value="">All Statuses</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="shipped">In Transit</option>
+                            <option value="pending">Pending</option>
+                            <option value="delayed">Delayed</option>
+                        </select>
+                        <!-- NEW: Pickup Location Filter -->
+                        <select id="pickupLocationFilter" class="filter-dropdown">
+                            <option value="">All Pickup Locations</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <!-- NEW: Delivery Location Filter -->
+                        <select id="deliveryLocationFilter" class="filter-dropdown">
+                            <option value="">All Delivery Locations</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <!-- NEW: Import/Export Options -->
+                        <div class="import-export-options">
+                            <button id="downloadSampleTemplateBtn" class="btn btn-outline btn-icon">
+                                <i class="fas fa-download"></i> Sample Template
+                            </button>
+                            <button id="importShipmentsBtn" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Import Shipments
+                            </button>
+                            <input type="file" id="shipmentFile" accept=".csv, .xlsx, .xls" style="display: none;">
+                        </div>
+                        
+                        <!-- Existing Export Buttons -->
+                        <button id="exportExcelBtn" class="btn btn-outline btn-icon">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
+                        <button id="exportGoogleSheetsBtn" class="btn btn-outline btn-icon">
+                            <i class="fab fa-google"></i> To Google Sheets
+                        </button>
+                        
+                        <button id="addNewShipmentBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Shipment
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="shipmentsTable">
+                        <thead>
+                            <tr>
+                                <th>ASN NO</th>
+                                <th>PO NO</th>
+                                <th>STYLE NAME</th>
+                                <th>SHIP QTY</th>
+                                <th>SHIP DATE</th>
+                                <th>PICKUP LOCATION</th>
+                                <th>DELIVERY LOCATION</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shipmentsTableBody">
+                            <!-- Shipment data will be loaded here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Management Module -->
+        <div id="order-management" class="module-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <div class="section-title">Order Management</div>
+                    <!-- Fixed Create New Order Button -->
+                    <button id="createNewOrderBtn" class="btn btn-primary">
+                        <i class="fas fa-file-invoice"></i> Create New Order
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="ordersTable">
+                        <thead>
+                            <tr>
+                                <th>PO NO</th>
+                                <th>VENDOR</th>
+                                <th>STYLE NAME</th>
+                                <th>ORDER QTY</th>
+                                <th>ORDER DATE</th>
+                                <th>DELIVERY DATE</th>
+                                <th>STATUS</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <!-- Order data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management Module -->
+        <div id="user-management" class="module-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <div class="section-title">User Management</div>
+                    <!-- Fixed Add New User Button -->
+                    <button id="addNewUserBtn" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Add New User
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>USER ID</th>
+                                <th>NAME</th>
+                                <th>EMAIL</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                                <th>LAST LOGIN</th>
+                                <th>ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- User data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Module -->
+        <div id="settings-module" class="module-content">
+            <div class="content-section">
+                <div class="section-header">
+                    <div class="section-title">Application Settings</div>
+                </div>
+                <div class="content-section">
+                    <h3 class="font-semibold text-lg mb-4" style="font-weight: 600; margin-bottom: 16px;">General Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px;">
+                        <div class="form-group">
+                            <label for="default-language">Default Language:</label>
+                            <select id="default-language" class="filter-dropdown">
+                                <option value="en">English</option>
+                                <option value="hi">Hindi</option>
+                                <option value="fr">French</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="timezone">Timezone:</label>
+                            <select id="timezone" class="filter-dropdown">
+                                <option value="IST">(UTC+5:30) India Standard Time</option>
+                                <option value="UTC">(UTC) Coordinated Universal Time</option>
+                                <option value="EST">(UTC-5:00) Eastern Standard Time</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="theme">Theme:</label>
+                            <select id="theme" class="filter-dropdown">
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="notification-pref">Notification Preferences:</label>
+                            <select id="notification-pref" class="filter-dropdown">
+                                <option value="email">Email</option>
+                                <option value="sms">SMS</option>
+                                <option value="none">None</option>
+                            </select>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <canvas id="mainChart" height="150"></canvas> <!-- Increased default height -->
+                    <div class="mt-6" style="margin-top: 24px;">
+                        <button class="btn btn-primary">Save Settings</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Data Table (Simplified) -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
-                        <h5 class="mb-2 mb-md-0 me-3">Monthly Shipping Data</h5>
-                        <div class="input-group" style="width: 250px;">
-                            <input type="text" class="form-control form-control-sm" placeholder="Search Month, Qty, Value..." id="searchInput">
-                            <button class="btn btn-outline-secondary btn-sm" type="button"><i class="fas fa-search"></i></button>
-                        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <!-- Version info changed to name -->
+            <p>Developed by Amit Chaudhary</p>
+        </div>
+    </div>
+
+    <!-- Modal for Add/Edit Shipment -->
+    <div id="shipmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title">Add New Shipment</h2>
+                <button class="close-button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="shipmentForm">
+                    <input type="hidden" id="shipmentId">
+                    <div class="form-group">
+                        <label for="asn">ASN NO:</label>
+                        <input type="text" id="asn" required>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 15%;">Unit</th>
-                                        <th style="width: 25%;">Month</th>
-                                        <th style="width: 20%;">Shipped Qty</th>
-                                        <th style="width: 25%;">Value ($)</th>
-                                        <th style="width: 15%;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="shipmentData"></tbody>
-                            </table>
-                        </div>
-                         <p id="noDataMessage" class="text-center text-muted mt-3" style="display: none;">No data available for the selected unit.</p>
+                    <div class="form-group">
+                        <label for="po">PO NO:</label>
+                        <input type="text" id="po" required>
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label for="styleName">Style Name:</label>
+                        <input type="text" id="styleName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipQty">Ship Qty:</label>
+                        <input type="number" id="shipQty" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shipDate">Ship Date:</label>
+                        <input type="date" id="shipDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="pickupLoc">Pickup Location:</label>
+                        <input type="text" id="pickupLoc" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryLoc">Delivery Location:</label>
+                        <input type="text" id="deliveryLoc" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" required>
+                            <option value="pending">Pending</option>
+                            <option value="shipped">In Transit</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="delayed">Delayed</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="saveShipmentBtn" class="btn btn-primary">Save Shipment</button>
             </div>
         </div>
     </div>
 
-    <!-- Help Modal -->
-    <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content" style="background: var(--card-bg); backdrop-filter: blur(10px);">
-                <div class="modal-header">
-                    <h5 class="modal-title">Dashboard Guide</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h6>How to use:</h6>
-                    <ul>
-                        <li><strong>Add Entry</strong>: Click "Add Monthly Entry" to input new data (Unit, Month, Quantity, Value). Multiple entries for the same month/unit are allowed.</li>
-                        <li><strong>Filter Units</strong>: Use the "All Units", "Noida", "Gurugram" buttons to filter data.</li>
-                        <li><strong>View Analytics</strong>: Use the tabs above the chart (Combined, Quantity, etc.) to change the graph view.</li>
-                        <li><strong>Search</strong>: Type in the search box above the table to find specific entries by month, quantity, or value.</li>
-                        <li><strong>Edit/Delete</strong>: Use the <i class="fas fa-edit"></i> and <i class="fas fa-trash"></i> icons in the table to modify or remove entries.</li>
-                        <li><strong>Export</strong>: Click "Export" to download the currently displayed data as an Excel file.</li>
-                    </ul>
-                    <h6>Features:</h6>
-                    <ul>
-                        <li>Track monthly shipped quantity and value.</li>
-                        <li>Filter data by Noida or Gurugram units.</li>
-                        <li>Visualize trends with interactive charts.</li>
-                        <li>Easy data management (Add, Edit, Delete).</li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
-                </div>
+    <!-- Modal for Add/Edit Order -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="orderModalTitle" class="modal-title">Create New Order</h2>
+                <button class="close-button order-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="orderForm">
+                    <input type="hidden" id="orderId">
+                    <div class="form-group">
+                        <label for="orderPo">PO NO:</label>
+                        <input type="text" id="orderPo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderVendor">Vendor:</label>
+                        <input type="text" id="orderVendor" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderStyleName">Style Name:</label>
+                        <input type="text" id="orderStyleName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderQty">Order Qty:</label>
+                        <input type="number" id="orderQty" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderDate">Order Date:</label>
+                        <input type="date" id="orderDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryDate">Delivery Date:</label>
+                        <input type="date" id="deliveryDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="orderStatus">Status:</label>
+                        <select id="orderStatus" required>
+                            <option value="pending">Pending</option>
+                            <option value="processing">Processing</option>
+                            <option value="shipped-order">Shipped</option>
+                            <option value="delivered-order">Delivered</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="saveOrderBtn" class="btn btn-primary">Save Order</button>
             </div>
         </div>
     </div>
 
-    <footer>
-        <p class="mb-0">© 2025 Quince Shipping Dashboard | Crafted by Amit Chaudhary</p>
-    </footer>
+    <!-- Modal for Add New User -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="userModalTitle" class="modal-title">Add New User</h2>
+                <button class="close-button user-modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userInternalId"> <!-- Renamed for clarity -->
+                    <div class="form-group">
+                        <label for="userUserId">User ID:</label> <!-- Renamed input for clarity -->
+                        <input type="text" id="userUserId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userName">Name:</label>
+                        <input type="text" id="userName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userEmail">Email:</label>
+                        <input type="email" id="userEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userRole">Role:</label>
+                        <select id="userRole" required>
+                            <option value="admin">Administrator</option>
+                            <option value="manager">Manager</option>
+                            <option value="vendor">Vendor</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="userStatus">Status:</label>
+                        <select id="userStatus" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    <!-- For actual app, password would be handled differently, here we'll add a placeholder -->
+                    <div class="form-group">
+                        <label for="userPassword">Initial Password (Optional):</label>
+                        <input type="password" id="userPassword">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="saveUserBtn" class="btn btn-primary">Save User</button>
+            </div>
+        </div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Keep Font Awesome JS if you need dynamic icons, otherwise CSS is sufficient -->
-    <!-- <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script> -->
     <script>
-        // Simplified data structure
-        let shipmentData = JSON.parse(localStorage.getItem('shipmentData')) || [
-            // Sample Data (can be empty initially)
-            // { unit: 'noida', month: 'January', qty: 5917, value: 96521.75, id: 1678886400000 + Math.random() },
-            // { unit: 'gurugram', month: 'January', qty: 500, value: 11750.00, id: 1678886400001 + Math.random() },
-            // { unit: 'noida', month: 'February', qty: 4500, value: 85000.00, id: 1678886400002 + Math.random() },
-            // { unit: 'gurugram', month: 'February', qty: 650, value: 15000.50, id: 1678886400003 + Math.random() }
-        ];
+        // --- DOM Elements ---
+        const navItems = document.querySelectorAll('.nav-item');
+        const moduleContents = document.querySelectorAll('.module-content');
+        const pageTitle = document.querySelector('.page-title');
+        const shipmentSearchInput = document.getElementById('shipmentSearch');
+        const statusFilter = document.getElementById('statusFilter');
+        const pickupLocationFilter = document.getElementById('pickupLocationFilter'); // Added
+        const deliveryLocationFilter = document.getElementById('deliveryLocationFilter'); // Added
+        const shipmentsTableBody = document.getElementById('shipmentsTableBody');
+        const addNewShipmentBtn = document.getElementById('addNewShipmentBtn');
+        const exportExcelBtn = document.getElementById('exportExcelBtn');
+        const exportGoogleSheetsBtn = document.getElementById('exportGoogleSheetsBtn');
 
-        let currentUnit = 'all';
-        let mainChart;
-        const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        // Elements for Import/Export
+        const downloadSampleTemplateBtn = document.getElementById('downloadSampleTemplateBtn');
+        const importShipmentsBtn = document.getElementById('importShipmentsBtn');
+        const shipmentFile = document.getElementById('shipmentFile');
 
-        // --- Utility Functions ---
-        function formatCurrency(amount) {
-            // Handle potential non-numeric input gracefully
-             if (typeof amount !== 'number' || isNaN(amount)) {
-                 amount = 0;
-             }
-            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
+        const shipmentModal = document.getElementById('shipmentModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const shipmentForm = document.getElementById('shipmentForm');
+        const shipmentIdInput = document.getElementById('shipmentId'); // Hidden field for edit
+        const shipmentModalCloseButton = shipmentModal.querySelector('.close-button');
+        const saveShipmentBtn = document.getElementById('saveShipmentBtn');
 
-        function formatNumber(num) {
-            // Handle potential non-numeric input gracefully
-             if (typeof num !== 'number' || isNaN(num)) {
-                 num = 0;
-             }
-            return num.toLocaleString('en-IN'); // Use Indian numbering format if preferred
-        }
+        const createNewOrderBtn = document.getElementById('createNewOrderBtn');
+        const orderModal = document.getElementById('orderModal');
+        const orderModalTitle = document.getElementById('orderModalTitle');
+        const orderForm = document.getElementById('orderForm');
+        const orderIdInput = document.getElementById('orderId'); // Hidden field for edit
+        const orderModalCloseButton = orderModal.querySelector('.order-modal-close');
+        const saveOrderBtn = document.getElementById('saveOrderBtn');
+        const ordersTableBody = document.getElementById('ordersTableBody');
 
-        function saveToLocalStorage() {
-            try {
-                 localStorage.setItem('shipmentData', JSON.stringify(shipmentData));
-             } catch (e) {
-                 console.error("Error saving to localStorage:", e);
-                 alert("Could not save data. Local storage might be full or disabled.");
-             }
-        }
+        const addNewUserBtn = document.getElementById('addNewUserBtn');
+        const userModal = document.getElementById('userModal');
+        const userModalTitle = document.getElementById('userModalTitle');
+        const userForm = document.getElementById('userForm');
+        const userInternalIdInput = document.getElementById('userInternalId'); // Hidden field for edit
+        const userUserIdInput = document.getElementById('userUserId'); // The actual User ID field
+        const userModalCloseButton = userModal.querySelector('.user-modal-close');
+        const saveUserBtn = document.getElementById('saveUserBtn');
+        const usersTableBody = document.getElementById('usersTableBody');
 
-        // Helper to get month index for sorting
-        function getMonthIndex(monthName) {
-            return monthOrder.indexOf(monthName);
-        }
+        const logoutItem = document.querySelector('.logout-item');
 
-        // Sort data by month, then unit
-        function sortData() {
-             shipmentData.sort((a, b) => {
-                const monthIndexA = getMonthIndex(a.month);
-                const monthIndexB = getMonthIndex(b.month);
-                if (monthIndexA !== monthIndexB) {
-                    return monthIndexA - monthIndexB;
-                }
-                 // If months are the same, sort by unit (optional, alphabetical)
-                 // return a.unit.localeCompare(b.unit);
-                 // Or sort by ID (entry order for same month/unit)
-                 return a.id - b.id;
-            });
-        }
+        // --- Local Storage Keys ---
+        const SHIPMENTS_STORAGE_KEY = 'logisticsShipments';
+        const ORDERS_STORAGE_KEY = 'logisticsOrders';
+        const USERS_STORAGE_KEY = 'logisticsUsers';
 
-        // --- Core Dashboard Logic ---
+        // --- Data Arrays ---
+        let shipments = [];
+        let orders = [];
+        let users = [];
 
-        function calculateTotals() {
-            const filteredData = filterDataByUnit();
-            const totalEntries = filteredData.length;
-            // Use || 0 to handle potential null/undefined values if data structure is inconsistent
-            const totalQuantity = filteredData.reduce((sum, item) => sum + (item.qty || 0), 0);
-            const totalValue = filteredData.reduce((sum, item) => sum + (item.value || 0), 0);
+        // --- Helper Functions ---
 
-            document.getElementById('totalEntries').textContent = formatNumber(totalEntries);
-            document.getElementById('totalQuantity').textContent = formatNumber(totalQuantity);
-            document.getElementById('totalValue').textContent = formatCurrency(totalValue);
-        }
-
-        function filterDataByUnit() {
-            if (currentUnit === 'all') return shipmentData;
-            return shipmentData.filter(item => item.unit === currentUnit);
-        }
-
-        function renderTable() {
-            const tableBody = document.getElementById('shipmentData');
-            const noDataMsg = document.getElementById('noDataMessage');
-            tableBody.innerHTML = ''; // Clear previous data
-
-            const filteredData = filterDataByUnit();
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-
-            // Filter based on search term *within* the unit-filtered data
-            const displayData = filteredData.filter(item => {
-                 if (!searchTerm) return true; // Show all if search is empty
-                 return (
-                     item.month.toLowerCase().includes(searchTerm) ||
-                     String(item.qty).includes(searchTerm) ||
-                     String(item.value).includes(searchTerm) ||
-                     item.unit.toLowerCase().includes(searchTerm) // Also allow searching unit name
-                 );
-             });
-
-
-             if (displayData.length === 0) {
-                 noDataMsg.style.display = 'block';
-                 tableBody.style.display = 'none';
-                 if (filteredData.length > 0 && searchTerm) {
-                     noDataMsg.textContent = "No entries match your search.";
-                 } else {
-                     noDataMsg.textContent = "No data available for the selected unit.";
-                 }
-             } else {
-                 noDataMsg.style.display = 'none';
-                 tableBody.style.display = ''; // Show table body
-
-                displayData.forEach((item) => {
-                    if (!item || typeof item.id === 'undefined') {
-                        console.warn("Skipping rendering invalid item:", item);
-                        return; // Skip rendering if item or id is invalid/missing
-                    }
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-id', item.id); // Use unique ID
-                    row.innerHTML = `
-                        <td><span class="unit-badge badge-${item.unit}">${item.unit === 'noida' ? 'Noida' : 'Gurugram'}</span></td>
-                        <td>${item.month}</td>
-                        <td>${formatNumber(item.qty)}</td>
-                        <td>${formatCurrency(item.value)}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-primary me-1 edit-btn" title="Edit" data-id="${item.id}"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-sm btn-outline-danger delete-btn" title="Delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
+        // Convert data to CSV format
+        function convertArrayToCSV(arr) {
+            if (!arr || arr.length === 0) return ''; // Handle empty array
+            const headers = Object.keys(arr[0]);
+            // Filter out internal IDs if they exist and you don't want them in CSV
+            const csvHeaders = headers.filter(header => header !== 'id' && header !== 'internalId' && header !== 'password');
+            let csv = csvHeaders.join(',') + '\n'; // Add headers
+            
+            arr.forEach(row => {
+                const values = csvHeaders.map(header => {
+                    const value = row[header];
+                    // Handle potential undefined/null values safely
+                    const escaped = String(value === undefined || value === null ? '' : value).replace(/"/g, '""'); // Escape double quotes
+                    return `"${escaped}"`; // Enclose values in double quotes
                 });
-            }
-
-            // Re-attach event listeners after rendering - Crucial step
-            attachTableActionListeners();
+                csv += values.join(',') + '\n';
+            });
+            return csv;
         }
 
-        function attachTableActionListeners() {
-             // Target specific buttons within the table body
-             const tableBody = document.getElementById('shipmentData');
-
-             tableBody.querySelectorAll('.edit-btn').forEach(btn => {
-                 // Clear existing listener before adding
-                 const newBtn = btn.cloneNode(true);
-                 btn.parentNode.replaceChild(newBtn, btn);
-                 newBtn.addEventListener('click', handleEditClick);
-            });
-
-             tableBody.querySelectorAll('.delete-btn').forEach(btn => {
-                 // Clear existing listener before adding
-                 const newBtn = btn.cloneNode(true);
-                 btn.parentNode.replaceChild(newBtn, btn);
-                 newBtn.addEventListener('click', handleDeleteClick);
-            });
+        // Download CSV/Excel file
+        function downloadFile(filename, text, mimeType) {
+            const blob = new Blob([text], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
-        function handleEditClick(event) {
-            const dataId = event.currentTarget.getAttribute('data-id');
-             if (dataId) {
-                 editData(dataId);
-             } else {
-                 console.error("Edit button clicked but no data-id found.");
-             }
-         }
-
-         function handleDeleteClick(event) {
-             const dataId = event.currentTarget.getAttribute('data-id');
-             if (dataId) {
-                 deleteData(dataId);
-             } else {
-                 console.error("Delete button clicked but no data-id found.");
-             }
-         }
-
-        // Aggregate data by month for charts
-        function aggregateDataByMonth(data) {
-            const aggregated = {};
-            monthOrder.forEach(month => { // Ensure all months are present in order
-                aggregated[month] = { qty: 0, value: 0, count: 0 };
-            });
-
-            data.forEach(item => {
-                // Ensure item and month exist before trying to aggregate
-                 if (item && item.month && aggregated[item.month]) {
-                    aggregated[item.month].qty += (item.qty || 0);
-                    aggregated[item.month].value += (item.value || 0);
-                    aggregated[item.month].count++;
+        // Get Status Display Name
+        function getStatusDisplayName(status, type = 'shipment') {
+            if (type === 'order') {
+                switch (status) {
+                    case 'pending': return 'Pending';
+                    case 'processing': return 'Processing';
+                    case 'shipped-order': return 'Shipped';
+                    case 'delivered-order': return 'Delivered';
+                    default: return status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ');
                 }
-            });
-            return aggregated;
-        }
-        // Aggregate data by month and unit
-         function aggregateDataByMonthUnit(data) {
-             const aggregated = {};
-             monthOrder.forEach(month => {
-                 aggregated[month] = {
-                     noida: { qty: 0, value: 0 },
-                     gurugram: { qty: 0, value: 0 }
-                 };
-             });
-
-             data.forEach(item => {
-                 // Ensure item, month, and unit exist
-                 if (item && item.month && item.unit && aggregated[item.month] && aggregated[item.month][item.unit]) {
-                     aggregated[item.month][item.unit].qty += (item.qty || 0);
-                     aggregated[item.month][item.unit].value += (item.value || 0);
-                 }
-             });
-             return aggregated;
-         }
-
-
-        function initMainChart(type = 'combined') {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            const unitFilteredData = filterDataByUnit(); // Data filtered by selected unit button
-
-            if (mainChart) {
-                 try {
-                     mainChart.destroy();
-                 } catch(e) { console.error("Error destroying chart:", e); }
-             }
-
-            let config = {};
-            let labels = monthOrder; // Use all months for consistent x-axis
-
-            // Define chart data based on type
-             try { // Wrap chart logic in try/catch
-                if (type === 'combined') {
-                     const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data for combined view by unit
-
-                     config = {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Noida Value ($)',
-                                    data: labels.map(month => aggregated[month]?.noida?.value || 0),
-                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
-                                    yAxisID: 'yValue',
-                                    order: 1 // Ensure value bars are behind qty bars if overlapping
-                                },
-                                {
-                                    label: 'Gurugram Value ($)',
-                                    data: labels.map(month => aggregated[month]?.gurugram?.value || 0),
-                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
-                                    yAxisID: 'yValue',
-                                    order: 1
-                                },
-                                {
-                                    label: 'Noida Quantity',
-                                    data: labels.map(month => aggregated[month]?.noida?.qty || 0),
-                                    borderColor: 'rgba(139, 92, 246, 1)',
-                                    yAxisID: 'yQuantity',
-                                    type: 'line', // Show quantity as line overlay
-                                    tension: 0.3,
-                                    order: 0, // Render line on top
-                                    borderWidth: 2,
-                                    pointBackgroundColor: 'rgba(139, 92, 246, 1)',
-                                    pointRadius: 3
-                                },
-                                {
-                                    label: 'Gurugram Quantity',
-                                    data: labels.map(month => aggregated[month]?.gurugram?.qty || 0),
-                                    borderColor: 'rgba(245, 158, 11, 1)',
-                                    yAxisID: 'yQuantity',
-                                    type: 'line', // Show quantity as line overlay
-                                    tension: 0.3,
-                                    order: 0,
-                                    borderWidth: 2,
-                                    pointBackgroundColor: 'rgba(245, 158, 11, 1)',
-                                    pointRadius: 3
-                                }
-                            ]
-                        },
-                        options: {
-                            scales: {
-                                x: { title: { display: true, text: 'Month'}},
-                                yValue: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Value ($)'}, ticks: { callback: value => formatCurrency(value) } },
-                                yQuantity: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: 'Quantity'}, grid: { drawOnChartArea: false }, ticks: { callback: value => formatNumber(value) } }
-                            }
-                        }
-                    };
-                } else if (type === 'quantity') {
-                     const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data
-                     config = {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Noida Quantity',
-                                    data: labels.map(month => aggregated[month]?.noida?.qty || 0),
-                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
-                                },
-                                {
-                                    label: 'Gurugram Quantity',
-                                    data: labels.map(month => aggregated[month]?.gurugram?.qty || 0),
-                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
-                                }
-                            ]
-                        },
-                         options: {
-                             plugins: { title: { display: true, text: 'Monthly Quantity by Unit' } },
-                             scales: { y: { beginAtZero: true, stacked: true, title: { display: true, text: 'Total Quantity'} } , x: { stacked: true, title: { display: true, text: 'Month'} } }, // Stack bars
-                             interaction: { mode: 'index', intersect: false } // Better tooltips for stacked bars
-                         }
-                    };
-                } else if (type === 'value') {
-                    const aggregated = aggregateDataByMonthUnit(shipmentData); // Use ALL data
-                     config = {
-                        type: 'bar', // Use bar chart for value too for consistency or line
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Noida Value ($)',
-                                    data: labels.map(month => aggregated[month]?.noida?.value || 0),
-                                    backgroundColor: 'rgba(139, 92, 246, 0.7)', // Noida Purple
-                                },
-                                {
-                                    label: 'Gurugram Value ($)',
-                                    data: labels.map(month => aggregated[month]?.gurugram?.value || 0),
-                                    backgroundColor: 'rgba(245, 158, 11, 0.7)', // Gurugram Orange
-                                }
-                            ]
-                        },
-                         options: {
-                             plugins: { title: { display: true, text: 'Monthly Value ($) by Unit' } },
-                             scales: { y: { beginAtZero: true, stacked: true, title: { display: true, text: 'Total Value ($)'}, ticks: { callback: value => formatCurrency(value) } }, x: { stacked: true, title: { display: true, text: 'Month'} } },
-                             interaction: { mode: 'index', intersect: false }
-                         }
-                    };
-                } else if (type === 'noida' || type === 'gurugram') {
-                    const unitData = shipmentData.filter(item => item.unit === type);
-                    const aggregated = aggregateDataByMonth(unitData);
-                    const color = type === 'noida' ? 'rgba(139, 92, 246, 0.7)' : 'rgba(245, 158, 11, 0.7)';
-                    const lineColor = type === 'noida' ? 'rgba(139, 92, 246, 1)' : 'rgba(245, 158, 11, 1)';
-
-                    config = {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: 'Value ($)',
-                                    data: labels.map(month => aggregated[month]?.value || 0),
-                                    backgroundColor: color,
-                                    yAxisID: 'yValue',
-                                    order: 1
-                                },
-                                {
-                                    label: 'Quantity',
-                                    data: labels.map(month => aggregated[month]?.qty || 0),
-                                    borderColor: lineColor,
-                                    yAxisID: 'yQuantity',
-                                    type: 'line', // Show quantity as line
-                                    tension: 0.3,
-                                    order: 0,
-                                    borderWidth: 2,
-                                    pointBackgroundColor: lineColor,
-                                    pointRadius: 3
-                                }
-                            ]
-                        },
-                        options: {
-                             plugins: { title: { display: true, text: `Monthly Data for ${type.charAt(0).toUpperCase() + type.slice(1)}` } },
-                             scales: {
-                                 x: { title: { display: true, text: 'Month'}},
-                                 yValue: { type: 'linear', position: 'left', beginAtZero: true, title: { display: true, text: 'Value ($)'}, ticks: { callback: value => formatCurrency(value) } },
-                                 yQuantity: { type: 'linear', position: 'right', beginAtZero: true, title: { display: true, text: 'Quantity'}, grid: { drawOnChartArea: false }, ticks: { callback: value => formatNumber(value) } }
-                            }
-                        }
-                    };
+            } else { // Shipment status or User status
+                switch (status) {
+                    case 'delivered': return 'Delivered';
+                    case 'shipped': return 'In Transit';
+                    case 'pending': return 'Pending';
+                    case 'delayed': return 'Delayed';
+                    case 'active': return 'Active';
+                    case 'inactive': return 'Inactive';
+                    default: return status.charAt(0).toUpperCase() + status.slice(1);
                 }
-
-                // --- Create Chart Instance ---
-                 mainChart = new Chart(ctx, {
-                    ...config,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false, // Allow chart height control
-                        plugins: {
-                            legend: { position: 'top', labels: { font: { size: 12, family: 'Poppins' } } },
-                            tooltip: {
-                                backgroundColor: 'rgba(17, 24, 39, 0.9)',
-                                titleFont: { family: 'Poppins', weight: 'bold'},
-                                bodyFont: { family: 'Poppins' },
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) label += ': ';
-                                        let value = context.raw;
-                                        // Check if value is valid number before formatting
-                                        if (typeof value === 'number' && !isNaN(value)) {
-                                             label += context.dataset.label.includes('$') ? formatCurrency(value) : formatNumber(value);
-                                         } else {
-                                             label += 'N/A'; // Or some placeholder
-                                         }
-                                        return label;
-                                    }
-                                }
-                            },
-                            ...(config.options?.plugins || {}) // Merge specific chart type plugins
-                        },
-                        scales: config.options?.scales || {}, // Merge specific scales
-                        animation: { duration: 800, easing: 'easeOutQuart' } // Changed easing
-                    }
-                });
-
-            } catch (error) {
-                 console.error("Error initializing chart:", error);
-                 // Optionally display an error message to the user on the page
-                 ctx.font = "16px Poppins";
-                 ctx.fillStyle = "red";
-                 ctx.textAlign = "center";
-                 ctx.fillText("Error loading chart.", ctx.canvas.width / 2, ctx.canvas.height / 2);
-             }
-        }
-
-        function exportToExcel() {
-            // Get data currently displayed in the table (respects unit filter AND search filter)
-            const tableBody = document.getElementById('shipmentData');
-            const rows = tableBody.querySelectorAll('tr');
-            let exportData = [];
-
-             if(rows.length === 0){
-                 alert("No data to export based on current filters.");
-                 return;
-             }
-
-            rows.forEach(row => {
-                 const cells = row.querySelectorAll('td');
-                 if(cells.length >= 4){ // Check for expected number of cells
-                     exportData.push({
-                         Unit: cells[0].textContent.trim(),
-                         Month: cells[1].textContent.trim(),
-                         'Shipped Qty': cells[2].textContent.trim().replace(/,/g, ''), // Remove commas for Excel
-                         'Value ($)': cells[3].textContent.trim().replace(/[$,]/g, '') // Remove $ and commas
-                     });
-                 }
-             });
-
-
-            const ws = XLSX.utils.json_to_sheet(exportData);
-
-            // --- Optional: Formatting ---
-             // Set column widths (example)
-             ws['!cols'] = [
-                 { wch: 15 }, // Unit
-                 { wch: 15 }, // Month
-                 { wch: 15 }, // Shipped Qty
-                 { wch: 20 }  // Value ($)
-             ];
-             // --- End Optional Formatting ---
-
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Shipping Data");
-            // Dynamically name the file based on the selected unit
-            const unitName = currentUnit === 'all' ? 'All_Units' : (currentUnit === 'noida' ? 'Noida' : 'Gurugram');
-            XLSX.writeFile(wb, `Quince_Monthly_Shipping_${unitName}.xlsx`);
-        }
-
-        // --- Form Handling ---
-
-        function addNewData() {
-             console.log("addNewData called"); // Debug log
-            document.getElementById('shippingForm').reset();
-            document.getElementById('editIndex').value = ''; // Clear edit index
-             document.getElementById('formErrorMessage').textContent = ''; // Clear any previous error
-             // Ensure default "Select" options are shown
-             document.getElementById('unit').selectedIndex = 0;
-             document.getElementById('month').selectedIndex = 0;
-            document.getElementById('dataForm').style.display = 'block';
-            // Scroll form into view if needed
-            document.getElementById('dataForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        // Edit function uses the unique ID now
-         function editData(id) {
-             // Find the item in the main data array using its ID
-             // Convert id from attribute (string) to number if necessary for comparison, although === might handle it
-             const itemIndex = shipmentData.findIndex(item => String(item.id) === String(id));
-             console.log(`Editing item with ID: ${id}, Found at index: ${itemIndex}`); // Debug log
-
-             if (itemIndex === -1) {
-                 console.error("Item to edit not found with ID:", id);
-                 alert("Error: Could not find the item to edit.");
-                 return; // Item not found
-             }
-
-             const item = shipmentData[itemIndex];
-             if (!item) {
-                 console.error("Invalid item found at index:", itemIndex);
-                 alert("Error: Invalid data for the item to edit.");
-                 return;
-             }
-
-            document.getElementById('unit').value = item.unit;
-            document.getElementById('month').value = item.month;
-            document.getElementById('qty').value = item.qty;
-            document.getElementById('value').value = item.value;
-            document.getElementById('editIndex').value = itemIndex; // Store the array index for saving
-             document.getElementById('formErrorMessage').textContent = ''; // Clear any previous error
-            document.getElementById('dataForm').style.display = 'block';
-             document.getElementById('dataForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
-
-        // Delete function uses the unique ID
-         function deleteData(id) {
-             // Find the index using the ID
-             const itemIndex = shipmentData.findIndex(item => String(item.id) === String(id));
-             console.log(`Deleting item with ID: ${id}, Found at index: ${itemIndex}`); // Debug log
-
-             if (itemIndex === -1) {
-                  console.error("Item to delete not found with ID:", id);
-                 alert("Error: Could not find the item to delete.");
-                 return; // Item not found
-             }
-
-             // Get details before deleting for confirmation message
-             const itemToDelete = shipmentData[itemIndex];
-             const confirmMessage = `Are you sure you want to delete the entry for ${itemToDelete.month} (${itemToDelete.unit}: Qty ${formatNumber(itemToDelete.qty)}, Val ${formatCurrency(itemToDelete.value)})?`;
-
-            if (confirm(confirmMessage)) {
-                shipmentData.splice(itemIndex, 1); // Remove item from array
-                saveToLocalStorage();
-                refreshDashboard(); // Update UI
             }
         }
 
-        function saveFormData(e) {
-            e.preventDefault(); // Prevent default form submission
-            console.log("saveFormData called"); // Debug log
+        // Get Status Class for styling
+        function getStatusClass(status, type = 'shipment') {
+            if (type === 'order') {
+                return `status-${status}`; // e.g., status-shipped-order
+            } else {
+                return `status-${status}`; // e.g., status-delivered, status-active
+            }
+        }
 
-            const formErrorMsg = document.getElementById('formErrorMessage');
-            formErrorMsg.textContent = ''; // Clear previous errors
+        // --- Local Storage Operations ---
+        function loadData(key, defaultData = []) {
+            const storedData = localStorage.getItem(key);
+            if (storedData) {
+                return JSON.parse(storedData);
+            } else {
+                // If no data, return default sample data
+                return defaultData;
+            }
+        }
 
-            // --- Basic Validation ---
-             const unit = document.getElementById('unit').value;
-             const month = document.getElementById('month').value;
-             const qtyInput = document.getElementById('qty');
-             const valueInput = document.getElementById('value');
+        function saveData(key, data) {
+            localStorage.setItem(key, JSON.stringify(data));
+        }
 
-             if (!unit) {
-                 formErrorMsg.textContent = "Please select a Unit.";
-                 return;
-             }
-             if (!month) {
-                 formErrorMsg.textContent = "Please select a Month.";
-                 return;
-             }
-             if (qtyInput.value === '' || isNaN(parseInt(qtyInput.value)) || parseInt(qtyInput.value) < 0) {
-                 formErrorMsg.textContent = "Please enter a valid non-negative Quantity.";
-                 return;
-             }
-              if (valueInput.value === '' || isNaN(parseFloat(valueInput.value)) || parseFloat(valueInput.value) < 0) {
-                 formErrorMsg.textContent = "Please enter a valid non-negative Value.";
-                 return;
-             }
-             // --- End Validation ---
+        // --- Rendering Functions ---
 
-            const formData = {
-                unit: unit,
-                month: month,
-                qty: parseInt(qtyInput.value),
-                value: parseFloat(valueInput.value),
-                id: null // Will be set below
+        // Populate location filter dropdowns
+        function populateLocationFilters() {
+            const pickupLocations = new Set();
+            const deliveryLocations = new Set();
+
+            shipments.forEach(ship => {
+                if (ship.pickupLoc) pickupLocations.add(ship.pickupLoc);
+                if (ship.deliveryLoc) deliveryLocations.add(ship.deliveryLoc);
+            });
+
+            // Clear previous options (except the default)
+            pickupLocationFilter.innerHTML = '<option value="">All Pickup Locations</option>';
+            deliveryLocationFilter.innerHTML = '<option value="">All Delivery Locations</option>';
+
+            // Add new options
+            Array.from(pickupLocations).sort().forEach(location => { // Sort for better UX
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                pickupLocationFilter.appendChild(option);
+            });
+
+            Array.from(deliveryLocations).sort().forEach(location => { // Sort for better UX
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                deliveryLocationFilter.appendChild(option);
+            });
+        }
+
+        // Render Shipments
+        function renderShipments(shipmentList) {
+            shipmentsTableBody.innerHTML = ''; // Clear existing rows
+
+            if (!shipmentList || shipmentList.length === 0) {
+                shipmentsTableBody.innerHTML = '<tr><td colspan="9" class="text-center">No shipments found.</td></tr>';
+                return;
+            }
+
+            shipmentList.forEach(shipment => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', shipment.id); // Internal ID for JS reference
+                row.innerHTML = `
+                    <td>${shipment.asn || ''}</td>
+                    <td>${shipment.po || ''}</td>
+                    <td>${shipment.styleName || ''}</td>
+                    <td>${shipment.shipQty || ''}</td>
+                    <td>${shipment.shipDate || ''}</td>
+                    <td>${shipment.pickupLoc || ''}</td>
+                    <td>${shipment.deliveryLoc || ''}</td>
+                    <td><span class="${getStatusClass(shipment.status)}">${getStatusDisplayName(shipment.status)}</span></td>
+                    <td>
+                        <div class="actions-icons">
+                            <i class="fas fa-edit text-warning edit-shipment" data-id="${shipment.id}"></i>
+                            <i class="fas fa-trash text-danger delete-shipment" data-id="${shipment.id}"></i>
+                        </div>
+                    </td>
+                `;
+                shipmentsTableBody.appendChild(row);
+            });
+        }
+
+        // Render Orders
+        function renderOrders(orderList) {
+            ordersTableBody.innerHTML = ''; // Clear existing rows
+
+            if (!orderList || orderList.length === 0) {
+                ordersTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found.</td></tr>';
+                return;
+            }
+
+            orderList.forEach(order => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', order.id); // Internal ID for JS reference
+                row.innerHTML = `
+                    <td>${order.po || ''}</td>
+                    <td>${order.vendor || ''}</td>
+                    <td>${order.styleName || ''}</td>
+                    <td>${order.orderQty || ''}</td>
+                    <td>${order.orderDate || ''}</td>
+                    <td>${order.deliveryDate || ''}</td>
+                    <td><span class="${getStatusClass(order.status, 'order')}">${getStatusDisplayName(order.status, 'order')}</span></td>
+                    <td>
+                        <div class="actions-icons">
+                            <i class="fas fa-edit text-warning edit-order" data-id="${order.id}"></i>
+                            <i class="fas fa-trash text-danger delete-order" data-id="${order.id}"></i>
+                        </div>
+                    </td>
+                `;
+                ordersTableBody.appendChild(row);
+            });
+        }
+
+        // Render Users
+        function renderUsers(userList) {
+            usersTableBody.innerHTML = ''; // Clear existing rows
+
+            if (!userList || userList.length === 0) {
+                usersTableBody.innerHTML = '<tr><td colspan="7" class="text-center">No users found.</td></tr>';
+                return;
+            }
+
+            userList.forEach(user => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-id', user.id); // Internal ID for JS reference
+                row.innerHTML = `
+                    <td>${user.userId || ''}</td>
+                    <td>${user.name || ''}</td>
+                    <td>${user.email || ''}</td>
+                    <td>${user.role || ''}</td>
+                    <td><span class="${getStatusClass(user.status)}">${getStatusDisplayName(user.status)}</span></td>
+                    <td>${user.lastLogin || 'Never'}</td>
+                    <td>
+                        <div class="actions-icons">
+                            <i class="fas fa-edit text-warning edit-user" data-id="${user.id}"></i>
+                            <i class="fas fa-trash text-danger delete-user" data-id="${user.id}"></i>
+                        </div>
+                    </td>
+                `;
+                usersTableBody.appendChild(row);
+            });
+        }
+
+        // --- Navigation Handling ---
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const target = this.getAttribute('data-target');
+                
+                // Remove active class from all nav items
+                navItems.forEach(nav => nav.classList.remove('active'));
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Hide all module contents
+                moduleContents.forEach(mod => mod.classList.remove('active'));
+                // Show the target module content
+                if(target) {
+                    const targetModule = document.getElementById(target);
+                    if (targetModule) {
+                        targetModule.classList.add('active');
+                        // Update page title
+                        pageTitle.textContent = this.querySelector('span').textContent;
+                    }
+                }
+            });
+        });
+
+        // --- Shipment Module Logic ---
+
+        // Handle Shipment Search & Filter
+        shipmentSearchInput.addEventListener('input', filterShipments);
+        statusFilter.addEventListener('change', filterShipments);
+        pickupLocationFilter.addEventListener('change', filterShipments); // Added
+        deliveryLocationFilter.addEventListener('change', filterShipments); // Added
+
+        function filterShipments() {
+            const searchTerm = shipmentSearchInput.value.toLowerCase();
+            const selectedStatus = statusFilter.value;
+            const selectedPickupLocation = pickupLocationFilter.value; // Added
+            const selectedDeliveryLocation = deliveryLocationFilter.value; // Added
+
+            const filtered = shipments.filter(ship => {
+                const matchesSearch = (
+                    (ship.asn && ship.asn.toLowerCase().includes(searchTerm)) ||
+                    (ship.po && ship.po.toLowerCase().includes(searchTerm)) ||
+                    (ship.styleName && ship.styleName.toLowerCase().includes(searchTerm)) ||
+                    (ship.pickupLoc && ship.pickupLoc.toLowerCase().includes(searchTerm)) ||
+                    (ship.deliveryLoc && ship.deliveryLoc.toLowerCase().includes(searchTerm))
+                );
+                
+                const matchesStatus = selectedStatus === '' || ship.status === selectedStatus;
+                const matchesPickupLocation = selectedPickupLocation === '' || ship.pickupLoc === selectedPickupLocation; // Added
+                const matchesDeliveryLocation = selectedDeliveryLocation === '' || ship.deliveryLoc === selectedDeliveryLocation; // Added
+
+                return matchesSearch && matchesStatus && matchesPickupLocation && matchesDeliveryLocation;
+            });
+            renderShipments(filtered);
+        }
+
+        // Shipment Modal Operations
+        addNewShipmentBtn.addEventListener('click', () => {
+            shipmentForm.reset();
+            shipmentIdInput.value = ''; // Clear hidden ID for adding new
+            modalTitle.textContent = 'Add New Shipment';
+            saveShipmentBtn.textContent = 'Save Shipment';
+            shipmentModal.style.display = 'flex'; // Show modal
+        });
+        shipmentModalCloseButton.addEventListener('click', () => shipmentModal.style.display = 'none');
+
+        saveShipmentBtn.addEventListener('click', () => {
+            if (!shipmentForm.checkValidity()) {
+                shipmentForm.reportValidity();
+                return;
+            }
+
+            // Generate unique ID if it's a new shipment
+            const id = shipmentIdInput.value ? parseInt(shipmentIdInput.value) : Date.now();
+            const shipmentData = {
+                id: id,
+                asn: document.getElementById('asn').value.trim(),
+                po: document.getElementById('po').value.trim(),
+                styleName: document.getElementById('styleName').value.trim(),
+                shipQty: parseInt(document.getElementById('shipQty').value),
+                shipDate: document.getElementById('shipDate').value,
+                pickupLoc: document.getElementById('pickupLoc').value.trim(),
+                deliveryLoc: document.getElementById('deliveryLoc').value.trim(),
+                status: document.getElementById('status').value
             };
 
-            const editIndexStr = document.getElementById('editIndex').value;
-
-            // REMOVED: Duplicate check is removed as requested
-            /*
-            const isDuplicate = shipmentData.some((item, index) =>
-                item.unit === formData.unit &&
-                item.month === formData.month &&
-                (editIndexStr === '' || index !== parseInt(editIndexStr)) // Allow saving same month/unit if editing that specific item
-            );
-
-            if (isDuplicate) {
-                 alert(`An entry for ${formData.month} in ${formData.unit === 'noida' ? 'Noida' : 'Gurugram'} already exists. You can edit the existing entry if needed.`);
-                 return; // Stop saving
-            }
-            */
-
-            if (editIndexStr !== '') {
-                 const editIndex = parseInt(editIndexStr);
-                 // Editing: Update existing item, keep its original ID
-                 if (editIndex >= 0 && editIndex < shipmentData.length) {
-                     formData.id = shipmentData[editIndex].id; // Keep original ID
-                     shipmentData[editIndex] = formData;
-                      console.log("Data updated at index:", editIndex);
-                 } else {
-                     console.error("Invalid editIndex:", editIndexStr);
-                     alert("Error saving edited data. Please try again.");
-                     return;
-                 }
-
+            const index = shipments.findIndex(ship => ship.id === id);
+            if (index !== -1) {
+                shipments[index] = shipmentData; // Update existing
             } else {
-                // Adding: Assign a new unique ID (simple timestamp + random)
-                 formData.id = Date.now() + Math.random();
-                shipmentData.push(formData);
-                 console.log("New data added with ID:", formData.id);
+                shipments.push(shipmentData); // Add new
             }
 
-            sortData(); // Sort after adding/editing
-            saveToLocalStorage();
-            refreshDashboard();
-            document.getElementById('dataForm').style.display = 'none'; // Hide form
-            document.getElementById('shippingForm').reset(); // Reset form fields
-        }
+            saveData(SHIPMENTS_STORAGE_KEY, shipments);
+            renderShipments(shipments); // Re-render the table
+            populateLocationFilters(); // Update filters after saving
+            filterShipments(); // Re-apply filters to show correct data
+            shipmentModal.style.display = 'none'; // Hide modal
+        });
 
-        function refreshDashboard() {
-            console.log("Refreshing dashboard. Current unit:", currentUnit); // Debug log
-            calculateTotals();
-            renderTable(); // Renders table based on currentUnit AND search term
-            initMainChart(document.querySelector('.tab-btn.active').dataset.tab); // Redraw chart based on active tab
-        }
+        // Table event listener for edit/delete shipments
+        shipmentsTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-shipment')) {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                const shipmentToEdit = shipments.find(ship => ship.id === id);
+                if (shipmentToEdit) {
+                    modalTitle.textContent = 'Edit Shipment';
+                    saveShipmentBtn.textContent = 'Update Shipment';
+                    shipmentIdInput.value = shipmentToEdit.id; // Set hidden ID for editing
+                    document.getElementById('asn').value = shipmentToEdit.asn || '';
+                    document.getElementById('po').value = shipmentToEdit.po || '';
+                    document.getElementById('styleName').value = shipmentToEdit.styleName || '';
+                    document.getElementById('shipQty').value = shipmentToEdit.shipQty || '';
+                    document.getElementById('shipDate').value = shipmentToEdit.shipDate || '';
+                    document.getElementById('pickupLoc').value = shipmentToEdit.pickupLoc || '';
+                    document.getElementById('deliveryLoc').value = shipmentToEdit.deliveryLoc || '';
+                    document.getElementById('status').value = shipmentToEdit.status || 'pending';
+                    shipmentModal.style.display = 'flex'; // Show modal
+                }
+            } else if (e.target.classList.contains('delete-shipment')) {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                if (confirm('Are you sure you want to delete this shipment?')) {
+                    shipments = shipments.filter(ship => ship.id !== id);
+                    saveData(SHIPMENTS_STORAGE_KEY, shipments);
+                    renderShipments(shipments); // Re-render
+                    populateLocationFilters(); // Update filters after deletion
+                    filterShipments(); // Re-apply filters
+                }
+            }
+        });
 
-        // --- Initialization ---
-        function initDashboard() {
-             console.log("Initializing dashboard..."); // Debug log
-            sortData(); // Initial sort of any loaded data
-            refreshDashboard(); // Initial load of UI elements
+        // Export Shipment Data
+        exportExcelBtn.addEventListener('click', () => {
+            if (shipments.length === 0) {
+                alert('No shipments to export.');
+                return;
+            }
+            const csvData = convertArrayToCSV(shipments);
+            downloadFile('shipments_data.csv', csvData, 'text/csv;charset=utf-8;');
+        });
 
-            // --- Event Listeners ---
+        // Placeholder for Google Sheets Export
+        exportGoogleSheetsBtn.addEventListener('click', () => {
+            alert('Google Sheets integration requires a Google Apps Script web app or Sheets API setup.\n\nIn a real application:\n1. Data would be sent to a web app URL.\n2. The web app would append the data to your Google Sheet.\n\nThis is a placeholder action. Provide your Google Apps Script Web App URL here if implemented.');
+            // Example:
+            // const sheetUrl = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'; 
+            // if (!sheetUrl || sheetUrl === 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL') {
+            //     alert('Please configure the GOOGLE_SHEETS_URL in the script.');
+            //     return;
+            // }
+            // fetch(sheetUrl, {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(shipments) // Send all current shipments
+            // }).then(response => {
+            //     if (response.ok) alert('Shipments sent to Google Sheets!');
+            //     else alert('Failed to send shipments to Google Sheets.');
+            // }).catch(error => {
+            //     alert('Error sending shipments to Google Sheets.');
+            //     console.error('Error:', error);
+            // });
+        });
 
-            // Unit filter buttons
-            document.querySelectorAll('.unit-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (this.classList.contains('active')) return; // Do nothing if already active
-                    document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentUnit = this.dataset.unit;
-                    // When unit changes, clear search and refresh
-                    document.getElementById('searchInput').value = '';
-                    refreshDashboard();
-                });
+
+        // --- Order Management Module Logic ---
+
+        // Order Modal Operations
+        createNewOrderBtn.addEventListener('click', () => {
+            orderForm.reset();
+            orderIdInput.value = ''; // Clear hidden ID for adding new
+            orderModalTitle.textContent = 'Create New Order';
+            saveOrderBtn.textContent = 'Save Order';
+            orderModal.style.display = 'flex'; // Show modal
+        });
+        orderModalCloseButton.addEventListener('click', () => orderModal.style.display = 'none');
+
+        saveOrderBtn.addEventListener('click', () => {
+            if (!orderForm.checkValidity()) {
+                orderForm.reportValidity();
+                return;
+            }
+
+            // Generate unique ID if it's a new order
+            const id = orderIdInput.value ? parseInt(orderIdInput.value) : Date.now();
+            const orderData = {
+                id: id,
+                po: document.getElementById('orderPo').value.trim(),
+                vendor: document.getElementById('orderVendor').value.trim(),
+                styleName: document.getElementById('orderStyleName').value.trim(),
+                orderQty: parseInt(document.getElementById('orderQty').value),
+                orderDate: document.getElementById('orderDate').value,
+                deliveryDate: document.getElementById('deliveryDate').value,
+                status: document.getElementById('orderStatus').value
+            };
+
+            const index = orders.findIndex(ord => ord.id === id);
+            if (index !== -1) {
+                orders[index] = orderData; // Update existing
+            } else {
+                orders.push(orderData); // Add new
+            }
+
+            saveData(ORDERS_STORAGE_KEY, orders);
+            renderOrders(orders);
+            orderModal.style.display = 'none'; // Hide modal
+        });
+
+        // Table event listener for edit/delete orders
+        ordersTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-order')) {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                const orderToEdit = orders.find(ord => ord.id === id);
+                if (orderToEdit) {
+                    orderModalTitle.textContent = 'Edit Order';
+                    saveOrderBtn.textContent = 'Update Order';
+                    orderIdInput.value = orderToEdit.id; // Set hidden ID for editing
+                    document.getElementById('orderPo').value = orderToEdit.po || '';
+                    document.getElementById('orderVendor').value = orderToEdit.vendor || '';
+                    document.getElementById('orderStyleName').value = orderToEdit.styleName || '';
+                    document.getElementById('orderQty').value = orderToEdit.orderQty || '';
+                    document.getElementById('orderDate').value = orderToEdit.orderDate || '';
+                    document.getElementById('deliveryDate').value = orderToEdit.deliveryDate || '';
+                    document.getElementById('orderStatus').value = orderToEdit.status || 'pending';
+                    orderModal.style.display = 'flex'; // Show modal
+                }
+            } else if (e.target.classList.contains('delete-order')) {
+                const id = parseInt(e.target.getAttribute('data-id'));
+                if (confirm('Are you sure you want to delete this order?')) {
+                    orders = orders.filter(ord => ord.id !== id);
+                    saveData(ORDERS_STORAGE_KEY, orders);
+                    renderOrders(orders); // Re-render
+                }
+            }
+        });
+
+
+        // --- User Management Module Logic ---
+
+        // User Modal Operations
+        addNewUserBtn.addEventListener('click', () => {
+            userForm.reset();
+            userInternalIdInput.value = ''; // Clear hidden internal ID for adding new
+            userUserIdInput.value = ''; // Clear the User ID input for adding new
+            userModalTitle.textContent = 'Add New User';
+            saveUserBtn.textContent = 'Save User';
+            userModal.style.display = 'flex'; // Show modal
+        });
+        userModalCloseButton.addEventListener('click', () => userModal.style.display = 'none');
+
+        saveUserBtn.addEventListener('click', () => {
+            if (!userForm.checkValidity()) {
+                userForm.reportValidity();
+                return;
+            }
+
+            const internalId = userInternalIdInput.value ? parseInt(userInternalIdInput.value) : Date.now();
+            const userUserId = userUserIdInput.value.trim(); // The actual User ID the user logs in with
+
+            // Check if User ID already exists, except for the current user being edited
+            const isEditing = userInternalIdInput.value !== '';
+            if (!isEditing && users.some(user => user.userId === userUserId)) {
+                alert('User ID already exists. Please choose a different User ID.');
+                return;
+            }
+
+            const userData = {
+                id: internalId, // Internal ID for JS array reference
+                userId: userUserId, // The user's login ID
+                name: document.getElementById('userName').value.trim(),
+                email: document.getElementById('userEmail').value.trim(),
+                role: document.getElementById('userRole').value,
+                status: document.getElementById('userStatus').value,
+                lastLogin: isEditing ? users.find(user => user.id === internalId)?.lastLogin || 'Never' : 'Never', // Preserve last login if editing
+                password: document.getElementById('userPassword').value // Simple password storage for example
+            };
+
+            const index = users.findIndex(user => user.id === internalId);
+            if (index !== -1) {
+                users[index] = userData; // Update existing
+            } else {
+                users.push(userData); // Add new
+            }
+
+            saveData(USERS_STORAGE_KEY, users);
+            renderUsers(users);
+            userModal.style.display = 'none'; // Hide modal
+        });
+
+        // Table event listener for edit/delete users
+        usersTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-user')) {
+                const internalId = parseInt(e.target.getAttribute('data-id'));
+                const userToEdit = users.find(user => user.id === internalId);
+                if (userToEdit) {
+                    userModalTitle.textContent = 'Edit User';
+                    saveUserBtn.textContent = 'Update User';
+                    userInternalIdInput.value = userToEdit.id; // Set internal ID for editing
+                    userUserIdInput.value = userToEdit.userId || ''; // Display User ID
+                    document.getElementById('userName').value = userToEdit.name || '';
+                    document.getElementById('userEmail').value = userToEdit.email || '';
+                    document.getElementById('userRole').value = userToEdit.role || 'vendor';
+                    document.getElementById('userStatus').value = userToEdit.status || 'active';
+                    document.getElementById('userPassword').value = ''; // Clear password field for security on edit
+                    userModal.style.display = 'flex'; // Show modal
+                }
+            } else if (e.target.classList.contains('delete-user')) {
+                const internalId = parseInt(e.target.getAttribute('data-id'));
+                // Prevent deleting the currently logged-in user for safety (though this is client-side)
+                // If the user being edited IS the current user, we'd need to know who's logged in.
+                // For simplicity, we'll just warn if deleting is attempted on a specific user ID.
+                // In a real app, you'd check the logged-in user's ID.
+                const userToDelete = users.find(user => user.id === internalId);
+                if (userToDelete && userToDelete.userId === 'ADM001') { // Assuming 'ADM001' is a protected user ID
+                     alert("Cannot delete the administrator account.");
+                     return;
+                }
+
+                if (confirm('Are you sure you want to delete this user?')) {
+                    users = users.filter(user => user.id !== internalId);
+                    saveData(USERS_STORAGE_KEY, users);
+                    renderUsers(users); // Re-render
+                }
+            }
+        });
+
+
+        // --- Logout Functionality ---
+        logoutItem.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                // In a real app, you'd also clear session tokens here.
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+
+        // --- Initialize Charts ---
+        function initializeCharts() {
+            // Shipment Volume Chart (Weekly)
+            const shipmentCtx = document.getElementById('shipmentChart').getContext('2d');
+            new Chart(shipmentCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Shipments',
+                        data: [24, 32, 18, 45, 36, 22, 30],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
             });
 
-            // Chart type tabs
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                     if (this.classList.contains('active')) return; // Do nothing if already active
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    // Only redraw chart, don't filter data again here
-                    initMainChart(this.dataset.tab);
-                });
+            // Status Distribution Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Delivered', 'In Transit', 'Pending', 'Delayed'],
+                    datasets: [{
+                        data: [65, 20, 10, 5],
+                        backgroundColor: ['#10b981', '#2563eb', '#f59e0b', '#ef4444'],
+                        borderWidth: 2, borderColor: 'white'
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
             });
 
-            // Add/Cancel/Save form buttons
-             const addNewButton = document.getElementById('addNewBtn');
-             if(addNewButton) {
-                 addNewButton.addEventListener('click', addNewData);
-             } else {
-                 console.error("Add New Button not found!");
-             }
+            // Location Performance Chart
+            const locationCtx = document.getElementById('locationChart').getContext('2d');
+            new Chart(locationCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mumbai', 'Delhi', 'Chennai', 'Kolkata', 'Bangalore', 'Hyderabad'],
+                    datasets: [{
+                        label: 'Shipments Handled',
+                        data: [42, 38, 28, 24, 32, 26],
+                        backgroundColor: '#f59e0b', borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true } },
+                    plugins: { legend: { display: false } }
+                }
+            });
 
-            const cancelFormButton = document.getElementById('cancelForm');
-             if (cancelFormButton) {
-                 cancelFormButton.addEventListener('click', () => {
-                    document.getElementById('dataForm').style.display = 'none';
-                    document.getElementById('shippingForm').reset();
-                    document.getElementById('formErrorMessage').textContent = ''; // Clear errors on cancel
-                });
-             } else {
-                 console.error("Cancel Form Button not found!");
-             }
+            // Delivery Performance Chart
+            const deliveryCtx = document.getElementById('deliveryChart').getContext('2d');
+            new Chart(deliveryCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [{
+                        label: 'On-Time Delivery %',
+                        data: [82, 85, 88, 86, 90, 92, 91, 94, 95],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3, tension: 0.2, fill: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { min: 70, max: 100, ticks: { callback: value => value + '%' } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
 
-             const shippingForm = document.getElementById('shippingForm');
-             if (shippingForm) {
-                 shippingForm.addEventListener('submit', saveFormData);
-             } else {
-                 console.error("Shipping Form not found!");
-             }
-
-
-            // Export button
-            const exportButton = document.getElementById('exportExcel');
-             if (exportButton) {
-                exportButton.addEventListener('click', exportToExcel);
-             } else {
-                 console.error("Export Button not found!");
-             }
-
-            // Search input - Trigger refresh on input change
-             const searchInput = document.getElementById('searchInput');
-             if (searchInput) {
-                 searchInput.addEventListener('input', function() {
-                    // We don't need to call the full refreshDashboard, just re-render the table
-                    renderTable();
-                    // Optionally, you could update totals/chart based on search, but usually not desired.
-                });
-             } else {
-                 console.error("Search Input not found!");
-             }
-
-
-            // Help Modal
-            const helpModalElement = document.getElementById('helpModal');
-            const toggleHelpButton = document.getElementById('toggleHelp');
-             if (helpModalElement && toggleHelpButton) {
-                 const helpModal = new bootstrap.Modal(helpModalElement);
-                 toggleHelpButton.addEventListener('click', () => helpModal.show());
-             } else {
-                 console.error("Help Modal elements not found!");
-             }
-
-             // Add listener for table actions (delegated listener is generally better but this works too)
-             // attachTableActionListeners(); // Initial attachment (will be re-attached in renderTable)
-             console.log("Dashboard Initialized.");
+            // NEW: Monthly Shipping Analytics Chart
+            const monthlyShipmentCtx = document.getElementById('monthlyShipmentChart').getContext('2d');
+            new Chart(monthlyShipmentCtx, {
+                type: 'bar', // Using bar chart for monthly overview
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Monthly Shipments',
+                        data: [150, 165, 180, 190, 210, 230, 200, 225, 240, 250, 260, 275], // Sample monthly data
+                        backgroundColor: 'rgba(37, 99, 235, 0.7)', // Primary blue
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Shipments'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false } // Hide legend as there's only one dataset
+                    }
+                }
+            });
         }
 
-        // --- Start the application ---
-        document.addEventListener('DOMContentLoaded', initDashboard);
 
+        // --- Initial Data Loading & App Initialization ---
+        function initializeApp() {
+            // Load initial data from localStorage or use default sample data
+            shipments = loadData(SHIPMENTS_STORAGE_KEY, [
+                { id: Date.now() + 1, asn: 'ASN-2023-0456', po: 'PO-7892', styleName: 'Summer-TShirt-XL', shipQty: 1200, shipDate: '2023-07-15', pickupLoc: 'Mumbai Warehouse', deliveryLoc: 'Delhi Distribution Center', status: 'delivered' },
+                { id: Date.now() + 2, asn: 'ASN-2023-0789', po: 'PO-8015', styleName: 'Winter-Jacket-L', shipQty: 850, shipDate: '2023-08-22', pickupLoc: 'Chennai Facility', deliveryLoc: 'Kolkata Retail Hub', status: 'shipped' },
+                { id: Date.now() + 3, asn: 'ASN-2023-0923', po: 'PO-8341', styleName: 'Formal-Shirt-M', shipQty: 2400, shipDate: '2023-09-05', pickupLoc: 'Ahmedabad Plant', deliveryLoc: 'Bangalore Central', status: 'pending' },
+                { id: Date.now() + 4, asn: 'ASN-2023-1012', po: 'PO-8567', styleName: 'Casual-Jeans-32', shipQty: 1800, shipDate: '2023-09-18', pickupLoc: 'Pune Storage', deliveryLoc: 'Hyderabad Outlet', status: 'delivered' },
+                { id: Date.now() + 5, asn: 'ASN-2023-1123', po: 'PO-8923', styleName: 'Sports-Shoes-10', shipQty: 950, shipDate: '2023-09-30', pickupLoc: 'Delhi Manufacturing', deliveryLoc: 'Mumbai Superstore', status: 'shipped' },
+                { id: Date.now() + 6, asn: 'ASN-2023-1234', po: 'PO-9001', styleName: 'Running-Shoes-9', shipQty: 700, shipDate: '2023-10-05', pickupLoc: 'Mumbai Warehouse', deliveryLoc: 'Chennai Distribution Center', status: 'delayed' },
+                { id: Date.now() + 7, asn: 'ASN-2023-1345', po: 'PO-9112', styleName: 'Summer-Dress-S', shipQty: 1100, shipDate: '2023-10-10', pickupLoc: 'Delhi Distribution Center', deliveryLoc: 'Mumbai Warehouse', status: 'pending' }
+            ]);
+            renderShipments(shipments);
+            populateLocationFilters(); // Populate filters after initial data load
+
+            orders = loadData(ORDERS_STORAGE_KEY, [
+                { id: Date.now() + 10, po: 'PO-7892', vendor: 'FashionHub Suppliers', styleName: 'Summer-TShirt-XL', orderQty: 1200, orderDate: '2023-07-10', deliveryDate: '2023-07-20', status: 'delivered-order' },
+                { id: Date.now() + 11, po: 'PO-8015', vendor: 'WinterWear Inc', styleName: 'Winter-Jacket-L', orderQty: 850, orderDate: '2023-08-15', deliveryDate: '2023-08-30', status: 'shipped-order' },
+                { id: Date.now() + 12, po: 'PO-8341', vendor: 'FormalAttire Ltd', styleName: 'Formal-Shirt-M', orderQty: 2400, orderDate: '2023-08-25', deliveryDate: '2023-09-10', status: 'pending' },
+                { id: Date.now() + 13, po: 'PO-8567', vendor: 'Denim Masters', styleName: 'Casual-Jeans-32', orderQty: 1800, orderDate: '2023-09-05', deliveryDate: '2023-09-20', status: 'delivered-order' }
+            ]);
+            renderOrders(orders);
+
+            users = loadData(USERS_STORAGE_KEY, [
+                { id: Date.now() + 20, userId: 'ADM001', name: 'Rahul Verma', email: 'rahul.v@logisticspro.com', role: 'Administrator', status: 'active', lastLogin: 'Today 09:42 AM', password: 'admin' },
+                { id: Date.now() + 21, userId: 'VDR023', name: 'Priya Patel', email: 'priya@vendorx.com', role: 'Vendor', status: 'active', lastLogin: 'Today 08:15 AM', password: 'password1' },
+                { id: Date.now() + 22, userId: 'VDR045', name: 'Anil Kumar', email: 'anil@supplychain.com', role: 'Vendor', status: 'pending', lastLogin: 'Never', password: 'password2' },
+                { id: Date.now() + 23, userId: 'MGR012', name: 'Sunita Rao', email: 'sunita@logisticspro.com', role: 'Manager', status: 'active', lastLogin: 'Yesterday 04:30 PM', password: 'password3' }
+            ]);
+            renderUsers(users);
+
+            // Initialize charts after all DOM elements are ready
+            initializeCharts();
+        }
+
+        // Initialize the app when the DOM is ready
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Close modals if clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target === shipmentModal) shipmentModal.style.display = 'none';
+            if (event.target === orderModal) orderModal.style.display = 'none';
+            if (event.target === userModal) userModal.style.display = 'none';
+        });
+
+        // --- Import/Export Specific Logic ---
+
+        // Sample Template Data (as a CSV string)
+        const sampleShipmentCSV = `"ASN NO","PO NO","STYLE NAME","SHIP QTY","SHIP DATE","PICKUP LOCATION","DELIVERY LOCATION","STATUS"
+"ASN-SAMPLE-001","PO-SAMPLE-1001","Sample-TShirt-M",100,"2023-11-01","Warehouse A","Customer Hub 1","pending"
+"ASN-SAMPLE-002","PO-SAMPLE-1002","Sample-Jeans-L",150,"2023-11-05","Warehouse B","Customer Hub 2","shipped"
+"ASN-SAMPLE-003","PO-SAMPLE-1003","Sample-Jacket-XL",75,"2023-11-07","Warehouse C","Customer Hub 3","delivered"`;
+
+        // Download Sample Template
+        downloadSampleTemplateBtn.addEventListener('click', () => {
+            downloadFile('sample_shipments_template.csv', sampleShipmentCSV, 'text/csv;charset=utf-8;');
+        });
+
+        // Trigger file input when Import button is clicked
+        importShipmentsBtn.addEventListener('click', () => {
+            shipmentFile.click(); // Programmatically click the hidden file input
+        });
+
+        // Handle file selection for import
+        shipmentFile.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const fileContent = e.target.result;
+                let importedData = [];
+
+                try {
+                    // Determine file type and parse accordingly
+                    if (file.name.endsWith('.csv')) {
+                        Papa.parse(fileContent, {
+                            header: true,
+                            dynamicTyping: true, // Automatically convert numbers, booleans, etc.
+                            skipEmptyLines: true,
+                            complete: function(results) {
+                                importedData = results.data;
+                                processImportedShipments(importedData, file.name); // Pass filename for context
+                            },
+                            error: function(error) {
+                                console.error("CSV Parsing Error:", error);
+                                alert("Error parsing CSV file. Please check the file format.");
+                            }
+                        });
+                    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        // For Excel files, we use SheetJS (xlsx)
+                        const workbook = XLSX.read(fileContent, { type: 'binary', cellDates: true });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Convert worksheet to JSON, assuming headers are in the first row
+                        importedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        // The first row is headers, so skip it for the data array
+                        if (importedData.length > 0) {
+                            const headers = importedData[0];
+                            const dataRows = importedData.slice(1);
+
+                            // Convert array of arrays to array of objects
+                            const jsonData = dataRows.map((row, rowIndex) => {
+                                const rowObject = {};
+                                headers.forEach((header, index) => {
+                                    const cleanedHeader = header.trim();
+                                    let value = row[index];
+                                    
+                                    // Basic type conversion/handling based on expected headers
+                                    if (cleanedHeader === "SHIP QTY") {
+                                        value = parseInt(value) || 0;
+                                    } else if (cleanedHeader === "SHIP DATE") {
+                                        if (value instanceof Date) {
+                                            value = value.toISOString().split('T')[0];
+                                        } else if (typeof value === 'number') {
+                                            // Attempt to convert Excel date serial number
+                                            // Ensure you have SheetJS loaded before this, it's included in the CDN.
+                                            try {
+                                                const date = XLSX.utils. நம்பர்_to_date(value); // SheetJS utility
+                                                if (date) value = date.toISOString().split('T')[0];
+                                            } catch (e) {
+                                                console.warn(`Could not convert Excel date serial number ${value}:`, e);
+                                                value = String(value); // Fallback to string
+                                            }
+                                        }
+                                        // Ensure date is a string in YYYY-MM-DD format if possible
+                                        if (typeof value !== 'string' && value !== undefined && value !== null) {
+                                             value = String(value); 
+                                        }
+                                    }
+                                    // Handle potential empty values or nulls
+                                    rowObject[cleanedHeader] = value === undefined || value === null ? '' : value;
+                                });
+                                return rowObject;
+                            });
+                            processImportedShipments(jsonData, file.name); // Pass filename for context
+                        } else {
+                            alert("No data found in the Excel file.");
+                        }
+                    } else {
+                        alert("Unsupported file type. Please upload a CSV, XLSX, or XLS file.");
+                    }
+                } catch (e) {
+                    console.error("File Processing Error:", e);
+                    alert("An error occurred while processing the file.");
+                }
+            };
+
+            // Read the file as binary string for XLSX, text for CSV
+            if (file.name.endsWith('.csv')) {
+                reader.readAsText(file);
+            } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                reader.readAsBinaryString(file);
+            }
+        });
+
+        // Process the imported shipment data
+        function processImportedShipments(importedData, fileName) {
+            const newShipments = [];
+            const validationErrors = [];
+            
+            // Define expected headers and their mapping to internal keys
+            const headerMap = {
+                'ASN NO': 'asn',
+                'PO NO': 'po',
+                'STYLE NAME': 'styleName',
+                'SHIP QTY': 'shipQty',
+                'SHIP DATE': 'shipDate',
+                'PICKUP LOCATION': 'pickupLoc',
+                'DELIVERY LOCATION': 'deliveryLoc',
+                'STATUS': 'status'
+            };
+
+            importedData.forEach((item, index) => {
+                const shipment = {};
+                let isValid = true;
+
+                // Map data from file headers to our internal shipment keys
+                for (const fileHeader in headerMap) {
+                    const internalKey = headerMap[fileHeader];
+                    // Use direct property access for PapaParse results
+                    const rowValue = item[fileHeader]; 
+                    shipment[internalKey] = rowValue;
+                }
+
+                // --- Basic Validation ---
+                if (!shipment.asn || !shipment.po || !shipment.styleName || !shipment.shipDate || !shipment.status) {
+                    validationErrors.push(`Row ${index + 1}: Missing required fields (ASN, PO, Style, Ship Date, Status).`);
+                    isValid = false;
+                }
+                const shipQty = parseInt(shipment.shipQty);
+                if (isNaN(shipQty) || shipQty < 0) {
+                    validationErrors.push(`Row ${index + 1}: Invalid Ship Quantity: "${shipment.shipQty}".`);
+                    isValid = false;
+                }
+                // More robust date validation could be added here
+
+                // Sanitize status and set default if invalid
+                if (shipment.status) {
+                    shipment.status = shipment.status.toLowerCase();
+                    if (!['pending', 'shipped', 'delivered', 'delayed'].includes(shipment.status)) {
+                        validationErrors.push(`Row ${index + 1}: Invalid Status "${shipment.status}". Defaulting to 'pending'.`);
+                        shipment.status = 'pending';
+                    }
+                } else {
+                    shipment.status = 'pending';
+                }
+
+                if (isValid) {
+                    // Assign a unique internal ID for our JS application
+                    shipment.id = Date.now() + Math.random(); // Simple unique ID
+                    newShipments.push(shipment);
+                }
+            });
+
+            // --- Add new shipments to existing ones ---
+            if (newShipments.length > 0) {
+                shipments.push(...newShipments); // Add all valid new shipments
+                saveData(SHIPMENTS_STORAGE_KEY, shipments); // Save updated list
+                renderShipments(shipments); // Re-render the table
+                populateLocationFilters(); // Update filters after saving
+                filterShipments(); // Re-apply filters to show correct data
+                alert(`Successfully imported ${newShipments.length} shipments from ${fileName}. ${validationErrors.length > 0 ? validationErrors.length + ' rows had errors.' : ''}`);
+                
+                if (validationErrors.length > 0) {
+                    console.warn("Import Validation Errors:", validationErrors);
+                    // Optionally display these errors to the user in a more friendly way
+                    // For instance, in a separate modal or a list below the import button.
+                }
+            } else {
+                alert(`No valid shipments were imported from ${fileName}. ${validationErrors.length > 0 ? validationErrors.length + ' rows had errors.' : ''}`);
+                if (validationErrors.length > 0) {
+                    console.warn("Import Validation Errors:", validationErrors);
+                }
+            }
+
+            // Reset the file input so the same file can be re-imported if needed
+            event.target.value = null;
+        }
     </script>
 </body>
 </html>
